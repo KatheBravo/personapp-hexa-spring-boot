@@ -6,9 +6,19 @@ import co.edu.javeriana.as.personapp.domain.Phone;
 import co.edu.javeriana.as.personapp.mongo.document.PersonaDocument;
 import co.edu.javeriana.as.personapp.mongo.document.TelefonoDocument;
 
+/**
+ * Convierte teléfonos entre el dominio ({@link Phone}) y el documento de MongoDB
+ * ({@link TelefonoDocument}).
+ */
 @Mapper
 public class TelefonoMapperMongo {
 
+	/**
+	 * Convierte un teléfono del dominio en documento.
+	 *
+	 * @param phone teléfono del dominio
+	 * @return documento listo para guardar
+	 */
 	public TelefonoDocument fromDomainToAdapter(Phone phone) {
 		TelefonoDocument telefonoDocument = new TelefonoDocument();
 		telefonoDocument.setId(phone.getNumber());
@@ -18,8 +28,11 @@ public class TelefonoMapperMongo {
 	}
 
 	/**
-	 * @DocumentReference solo guarda el _id del documento referenciado, por eso
-	 * basta con un PersonaDocument que tenga la cedula.
+	 * Crea la referencia al dueño con solo su cédula; la referencia guarda
+	 * únicamente el {@code _id} del documento.
+	 *
+	 * @param owner dueño del dominio
+	 * @return documento de persona con solo el identificador, o {@code null} si no hay dueño
 	 */
 	private PersonaDocument validateDuenio(Person owner) {
 		if (owner == null) {
@@ -30,6 +43,12 @@ public class TelefonoMapperMongo {
 		return duenio;
 	}
 
+	/**
+	 * Convierte un documento en teléfono del dominio.
+	 *
+	 * @param telefonoDocument documento leído de MongoDB
+	 * @return teléfono del dominio con los datos de su dueño
+	 */
 	public Phone fromAdapterToDomain(TelefonoDocument telefonoDocument) {
 		Phone phone = new Phone();
 		phone.setNumber(telefonoDocument.getId());
@@ -40,7 +59,12 @@ public class TelefonoMapperMongo {
 		return phone;
 	}
 
-	/** Duenio "basico" (sin sus telefonos): evita la recursion infinita de la plantilla. */
+	/**
+	 * Convierte el dueño sin sus teléfonos para no recorrer la relación en ciclo.
+	 *
+	 * @param duenio documento del dueño; puede ser nulo
+	 * @return persona del dominio
+	 */
 	private Person validateOwner(PersonaDocument duenio) {
 		return duenio != null ? PersonaMapperMongo.toDomainBasic(duenio) : new Person();
 	}

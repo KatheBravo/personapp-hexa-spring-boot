@@ -17,38 +17,63 @@ import co.edu.javeriana.as.personapp.mariadb.repository.ProfesionRepositoryMaria
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Adaptador de salida de estudios para MariaDB. Nombre del bean:
+ * {@code studyOutputAdapterMaria}.
+ *
+ * La tabla {@code estudios} usa la llave compuesta {@link EstudiosEntityPK}
+ * (id_prof, cc_per).
+ */
 @Slf4j
 @Adapter("studyOutputAdapterMaria")
 @Transactional
 @RequiredArgsConstructor
 public class StudyOutputAdapterMaria implements StudyOutputPort {
 
+	/** Repositorio JPA de la tabla estudios. */
 	private final EstudiosRepositoryMaria estudiosRepositoryMaria;
 
+	/** Repositorio JPA de la tabla persona. */
 	private final PersonaRepositoryMaria personaRepositoryMaria;
 
+	/** Repositorio JPA de la tabla profesion. */
 	private final ProfesionRepositoryMaria profesionRepositoryMaria;
 
+	/** Conversor entre {@link Study} y {@link EstudiosEntity}. */
 	private final EstudiosMapperMaria estudiosMapperMaria;
 
+	/**
+	 * Guarda el estudio. La llave compuesta define las columnas cc_per e id_prof; las
+	 * relaciones se llenan con las entidades administradas para devolver el estudio
+	 * completo.
+	 *
+	 * @param study estudio a guardar; la persona y la profesión deben existir
+	 * @return el estudio guardado con los datos de la persona y la profesión
+	 * @throws java.util.NoSuchElementException si la persona o la profesión no existen en MariaDB
+	 */
 	@Override
 	public Study save(Study study) {
 		log.debug("Into save study on Adapter MariaDB");
 		EstudiosEntity estudiosEntity = estudiosMapperMaria.fromDomainToAdapter(study);
-		// Las columnas cc_per e id_prof se escriben por la llave compuesta; las relaciones
-		// se llenan con las entidades administradas para devolver el estudio completo
 		estudiosEntity.setPersona(personaRepositoryMaria.findById(study.getPerson().getIdentification()).orElseThrow());
 		estudiosEntity.setProfesion(
 				profesionRepositoryMaria.findById(study.getProfession().getIdentification()).orElseThrow());
 		return estudiosMapperMaria.fromAdapterToDomain(estudiosRepositoryMaria.save(estudiosEntity));
 	}
 
+	/**
+	 * Elimina el estudio. Antes lo retira de las listas de la persona y de la
+	 * profesión para que su {@code cascade} no lo vuelva a guardar.
+	 *
+	 * @param personIdentification cédula de la persona
+	 * @param professionIdentification identificador de la profesión
+	 * @return {@code true} si el estudio ya no existe
+	 */
 	@Override
 	public Boolean delete(Integer personIdentification, Integer professionIdentification) {
 		log.debug("Into delete study on Adapter MariaDB");
 		EstudiosEntityPK pk = new EstudiosEntityPK(professionIdentification, personIdentification);
 		estudiosRepositoryMaria.findById(pk).ifPresent(estudio -> {
-			// Se saca de las listas de persona y profesion para que su cascade no lo vuelva a guardar
 			if (estudio.getPersona() != null && estudio.getPersona().getEstudios() != null) {
 				estudio.getPersona().getEstudios().remove(estudio);
 			}
@@ -61,6 +86,11 @@ public class StudyOutputAdapterMaria implements StudyOutputPort {
 		return estudiosRepositoryMaria.findById(pk).isEmpty();
 	}
 
+	/**
+	 * Consulta todos los estudios de MariaDB.
+	 *
+	 * @return lista de estudios con los datos de la persona y la profesión
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public List<Study> find() {
@@ -69,11 +99,18 @@ public class StudyOutputAdapterMaria implements StudyOutputPort {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Busca un estudio por su llave compuesta en MariaDB.
+	 *
+	 * @param personIdentification cédula de la persona
+	 * @param professionIdentification identificador de la profesión
+	 * @return el estudio encontrado, o {@code null} si no existe
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Study findById(Integer personIdentification, Integer professionIdentification) {
 		log.debug("Into findById study on Adapter MariaDB");
-		// Ojo con el orden: la llave de la tabla es (id_prof, cc_per)
+		// La llave se construye en el orden de la tabla: (id_prof, cc_per)
 		EstudiosEntityPK pk = new EstudiosEntityPK(professionIdentification, personIdentification);
 		return estudiosRepositoryMaria.findById(pk).map(estudiosMapperMaria::fromAdapterToDomain).orElse(null);
 	}

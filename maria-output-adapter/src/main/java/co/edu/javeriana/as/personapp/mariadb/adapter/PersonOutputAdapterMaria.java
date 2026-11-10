@@ -15,9 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Adaptador de salida (MariaDB) del puerto PersonOutputPort. El nombre del
- * bean ("personOutputAdapterMaria") es el que usa @Qualifier para elegir esta
- * implementacion en tiempo de ejecucion.
+ * Adaptador de salida de personas para MariaDB.
+ *
+ * Implementa {@link PersonOutputPort} con Spring Data JPA. Los adaptadores de
+ * entrada eligen este motor con {@code @Qualifier("personOutputAdapterMaria")}.
  */
 @Slf4j
 @Adapter("personOutputAdapterMaria")
@@ -25,14 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class PersonOutputAdapterMaria implements PersonOutputPort {
 
+	/** Repositorio JPA de la tabla persona. */
 	private final PersonaRepositoryMaria personaRepositoryMaria;
 
+	/** Conversor entre {@link Person} y {@link PersonaEntity}. */
 	private final PersonaMapperMaria personaMapperMaria;
 
+	/**
+	 * Guarda la persona. Si ya existe, copia sus datos sobre la entidad administrada
+	 * para no perder sus teléfonos y estudios.
+	 *
+	 * @param person persona a guardar
+	 * @return la persona guardada, con sus relaciones
+	 */
 	@Override
 	public Person save(Person person) {
 		log.debug("Into save on Adapter MariaDB");
-		// Si ya existe se actualizan solo sus datos, sin tocar telefonos ni estudios
 		PersonaEntity personaEntity = personaRepositoryMaria.findById(person.getIdentification())
 				.map(existing -> personaMapperMaria.copyToAdapter(person, existing))
 				.orElseGet(() -> personaMapperMaria.fromDomainToAdapter(person));
@@ -40,15 +49,26 @@ public class PersonOutputAdapterMaria implements PersonOutputPort {
 		return personaMapperMaria.fromAdapterToDomain(persistedPersona);
 	}
 
+	/**
+	 * Elimina la persona. El {@code cascade} de {@link PersonaEntity} elimina también
+	 * sus teléfonos y estudios.
+	 *
+	 * @param identification cédula de la persona
+	 * @return {@code true} si la persona ya no existe
+	 */
 	@Override
 	public Boolean delete(Integer identification) {
 		log.debug("Into delete on Adapter MariaDB");
-		// cascade = ALL en PersonaEntity borra tambien sus telefonos y estudios
 		personaRepositoryMaria.deleteById(identification);
 		personaRepositoryMaria.flush();
 		return personaRepositoryMaria.findById(identification).isEmpty();
 	}
 
+	/**
+	 * Consulta todas las personas de MariaDB.
+	 *
+	 * @return lista de personas con sus teléfonos y estudios
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public List<Person> find() {
@@ -57,6 +77,12 @@ public class PersonOutputAdapterMaria implements PersonOutputPort {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Busca una persona por cédula en MariaDB.
+	 *
+	 * @param identification cédula de la persona
+	 * @return la persona encontrada, o {@code null} si no existe
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Person findById(Integer identification) {

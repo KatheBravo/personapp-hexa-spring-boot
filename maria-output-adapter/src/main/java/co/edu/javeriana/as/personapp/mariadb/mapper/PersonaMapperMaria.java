@@ -15,26 +15,29 @@ import co.edu.javeriana.as.personapp.mariadb.entity.TelefonoEntity;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Convierte entre la entidad de negocio Person (ingles = dominio) y la entidad
- * de datos PersonaEntity (espanol = adaptador).
+ * Convierte personas entre el dominio ({@link Person}) y la entidad JPA
+ * ({@link PersonaEntity}).
  *
- * Correccion respecto a la plantilla: la persona tiene telefonos y estudios, y
- * cada telefono/estudio vuelve a tener a su persona. Si el mapper de telefono
- * llama al mapper "completo" de persona se produce una recursion infinita
- * (StackOverflowError). Por eso existe {@link #toDomainBasic(PersonaEntity)}:
- * la persona "basica" (sin listas) que usan los mappers hijos.
+ * Una persona tiene teléfonos y estudios, y cada uno vuelve a apuntar a la
+ * persona. Para no recorrer ese ciclo, los mappers de teléfono y estudio usan
+ * {@link #toDomainBasic(PersonaEntity)}, que convierte la persona sin sus listas.
  */
 @Mapper
 @RequiredArgsConstructor
 public class PersonaMapperMaria {
 
+	/** Conversor de los estudios de la persona. */
 	private final EstudiosMapperMaria estudiosMapperMaria;
 
+	/** Conversor de los teléfonos de la persona. */
 	private final TelefonoMapperMaria telefonoMapperMaria;
 
 	/**
-	 * Solo los datos propios de la persona. Los telefonos y estudios los
-	 * guardan sus propios adaptadores, por eso las listas van vacias.
+	 * Convierte una persona del dominio en una entidad nueva. Las listas de
+	 * teléfonos y estudios quedan vacías porque cada una la guarda su adaptador.
+	 *
+	 * @param person persona del dominio
+	 * @return entidad lista para guardar
 	 */
 	public PersonaEntity fromDomainToAdapter(Person person) {
 		PersonaEntity personaEntity = new PersonaEntity();
@@ -45,8 +48,12 @@ public class PersonaMapperMaria {
 	}
 
 	/**
-	 * Copia los datos editables sobre una entidad que ya existe, sin tocar sus
-	 * relaciones (telefonos y estudios).
+	 * Copia los datos editables de la persona sobre una entidad, sin modificar sus
+	 * teléfonos ni estudios.
+	 *
+	 * @param person persona del dominio con los datos nuevos
+	 * @param personaEntity entidad que recibe los datos
+	 * @return la misma entidad, actualizada
 	 */
 	public PersonaEntity copyToAdapter(Person person, PersonaEntity personaEntity) {
 		personaEntity.setCc(person.getIdentification());
@@ -57,15 +64,33 @@ public class PersonaMapperMaria {
 		return personaEntity;
 	}
 
+	/**
+	 * Convierte el género del dominio al valor de la columna.
+	 *
+	 * @param gender género del dominio
+	 * @return {@code 'F'}, {@code 'M'} o {@code null} si el género es otro
+	 */
 	private static Character validateGenero(Gender gender) {
 		return gender == Gender.FEMALE ? 'F' : gender == Gender.MALE ? 'M' : null;
 	}
 
+	/**
+	 * Normaliza la edad antes de guardarla.
+	 *
+	 * @param age edad del dominio
+	 * @return la edad, o {@code null} si es nula o negativa
+	 */
 	private static Integer validateEdad(Integer age) {
 		return age != null && age >= 0 ? age : null;
 	}
 
-	/** Persona completa: con sus telefonos y estudios. */
+	/**
+	 * Convierte una entidad en persona del dominio, incluidos sus teléfonos y
+	 * estudios.
+	 *
+	 * @param personaEntity entidad leída de MariaDB
+	 * @return persona del dominio completa
+	 */
 	public Person fromAdapterToDomain(PersonaEntity personaEntity) {
 		Person person = toDomainBasic(personaEntity);
 		person.setStudies(validateStudies(personaEntity.getEstudios()));
@@ -74,8 +99,11 @@ public class PersonaMapperMaria {
 	}
 
 	/**
-	 * Persona sin relaciones. La usan los mappers de telefono y estudios para
-	 * cortar el ciclo persona -> telefono -> persona -> ...
+	 * Convierte una entidad en persona del dominio sin teléfonos ni estudios. La
+	 * usan los mappers de teléfono y estudio.
+	 *
+	 * @param personaEntity entidad leída de MariaDB
+	 * @return persona con las listas vacías
 	 */
 	public static Person toDomainBasic(PersonaEntity personaEntity) {
 		Person person = new Person();
@@ -93,22 +121,46 @@ public class PersonaMapperMaria {
 		return person;
 	}
 
+	/**
+	 * Convierte el valor de la columna al género del dominio.
+	 *
+	 * @param genero valor de la columna; puede ser nulo
+	 * @return {@link Gender#FEMALE}, {@link Gender#MALE} u {@link Gender#OTHER}
+	 */
 	private static Gender validateGender(Character genero) {
-		// Character.valueOf(...).equals evita el NullPointerException del unboxing de "genero == 'F'"
+		// equals evita el NullPointerException de comparar con == un Character nulo
 		return Character.valueOf('F').equals(genero) ? Gender.FEMALE
 				: Character.valueOf('M').equals(genero) ? Gender.MALE : Gender.OTHER;
 	}
 
+	/**
+	 * Normaliza la edad leída de la base de datos.
+	 *
+	 * @param edad valor de la columna
+	 * @return la edad, o {@code null} si es nula o negativa
+	 */
 	private static Integer validateAge(Integer edad) {
 		return edad != null && edad >= 0 ? edad : null;
 	}
 
+	/**
+	 * Convierte los estudios de la persona.
+	 *
+	 * @param estudiosEntity estudios leídos de MariaDB
+	 * @return estudios del dominio; lista vacía si no tiene
+	 */
 	private List<Study> validateStudies(List<EstudiosEntity> estudiosEntity) {
 		return estudiosEntity != null && !estudiosEntity.isEmpty() ? estudiosEntity.stream()
 				.map(estudio -> estudiosMapperMaria.fromAdapterToDomain(estudio)).collect(Collectors.toList())
 				: new ArrayList<Study>();
 	}
 
+	/**
+	 * Convierte los teléfonos de la persona.
+	 *
+	 * @param telefonoEntities teléfonos leídos de MariaDB
+	 * @return teléfonos del dominio; lista vacía si no tiene
+	 */
 	private List<Phone> validatePhones(List<TelefonoEntity> telefonoEntities) {
 		return telefonoEntities != null && !telefonoEntities.isEmpty() ? telefonoEntities.stream()
 				.map(telefono -> telefonoMapperMaria.fromAdapterToDomain(telefono)).collect(Collectors.toList())

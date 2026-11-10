@@ -14,41 +14,63 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Adaptador de salida (MongoDB) del puerto PersonOutputPort. Implementa la
- * MISMA interfaz que PersonOutputAdapterMaria; el adaptador de entrada decide
- * cual usar con el nombre del bean.
+ * Adaptador de salida de personas para MongoDB.
+ *
+ * Implementa el mismo puerto que el adaptador de MariaDB. Los adaptadores de
+ * entrada lo eligen con {@code @Qualifier("personOutputAdapterMongo")}.
  */
 @Slf4j
 @Adapter("personOutputAdapterMongo")
 @RequiredArgsConstructor
 public class PersonOutputAdapterMongo implements PersonOutputPort {
 
+	/** Repositorio de la colección persona. */
 	private final PersonaRepositoryMongo personaRepositoryMongo;
 
+	/** Repositorio de la colección telefono, usado para el borrado en cascada. */
 	private final TelefonoRepositoryMongo telefonoRepositoryMongo;
 
+	/** Repositorio de la colección estudios, usado para el borrado en cascada. */
 	private final EstudiosRepositoryMongo estudiosRepositoryMongo;
 
+	/** Conversor entre {@link Person} y {@code PersonaDocument}. */
 	private final PersonaMapperMongo personaMapperMongo;
 
+	/**
+	 * Guarda la persona y la vuelve a leer para devolverla con sus teléfonos y
+	 * estudios, que se consultan por referencia inversa.
+	 *
+	 * @param person persona a guardar
+	 * @return la persona guardada, con sus relaciones
+	 */
 	@Override
 	public Person save(Person person) {
 		log.debug("Into save on Adapter MongoDB");
 		personaRepositoryMongo.save(personaMapperMongo.fromDomainToAdapter(person));
-		// Se vuelve a leer para traer telefonos y estudios (referencias inversas)
 		return findById(person.getIdentification());
 	}
 
+	/**
+	 * Elimina la persona. MongoDB no tiene llaves foráneas, así que primero se
+	 * borran los teléfonos y estudios que la referencian.
+	 *
+	 * @param identification cédula de la persona
+	 * @return {@code true} si la persona ya no existe
+	 */
 	@Override
 	public Boolean delete(Integer identification) {
 		log.debug("Into delete on Adapter MongoDB");
-		// MongoDB no tiene llaves foraneas: se borran a mano los documentos que referencian a la persona
 		telefonoRepositoryMongo.eliminarPorDuenio(identification);
 		estudiosRepositoryMongo.eliminarPorPersona(identification);
 		personaRepositoryMongo.deleteById(identification);
 		return !personaRepositoryMongo.existsById(identification);
 	}
 
+	/**
+	 * Consulta todas las personas de MongoDB.
+	 *
+	 * @return lista de personas con sus teléfonos y estudios
+	 */
 	@Override
 	public List<Person> find() {
 		log.debug("Into find on Adapter MongoDB");
@@ -56,6 +78,12 @@ public class PersonOutputAdapterMongo implements PersonOutputPort {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Busca una persona por cédula en MongoDB.
+	 *
+	 * @param identification cédula de la persona
+	 * @return la persona encontrada, o {@code null} si no existe
+	 */
 	@Override
 	public Person findById(Integer identification) {
 		log.debug("Into findById on Adapter MongoDB");

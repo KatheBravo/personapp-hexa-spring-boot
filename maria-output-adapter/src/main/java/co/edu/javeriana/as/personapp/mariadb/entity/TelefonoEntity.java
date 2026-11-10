@@ -12,6 +12,8 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 
 /**
+ * Entidad JPA de la tabla {@code telefono}. La columna {@code duenio} es llave
+ * foránea a la cédula de la persona.
  *
  * @author aasanchez
  */
@@ -23,53 +25,82 @@ import jakarta.persistence.Table;
 public class TelefonoEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	/** Número, llave primaria, máximo 15 caracteres. */
 	@Id
 	@Basic(optional = false)
 	@Column(nullable = false, length = 15)
 	private String num;
+
+	/** Operador, máximo 45 caracteres. */
 	@Basic(optional = false)
 	@Column(nullable = false, length = 45)
 	private String oper;
+
+	/** Persona dueña del teléfono. */
 	@JoinColumn(name = "duenio", referencedColumnName = "cc", nullable = false)
 	@ManyToOne(optional = false)
 	private PersonaEntity duenio;
 
+	/** Constructor vacío requerido por JPA. */
 	public TelefonoEntity() {
 	}
 
+	/**
+	 * Crea una referencia al teléfono con solo su número.
+	 *
+	 * @param num número del teléfono
+	 */
 	public TelefonoEntity(String num) {
 		this.num = num;
 	}
 
+	/**
+	 * Crea el teléfono con número y operador.
+	 *
+	 * @param num número
+	 * @param oper operador
+	 */
 	public TelefonoEntity(String num, String oper) {
 		this.num = num;
 		this.oper = oper;
 	}
 
+	/** @return número */
 	public String getNum() {
 		return num;
 	}
 
+	/** @param num número */
 	public void setNum(String num) {
 		this.num = num;
 	}
 
+	/** @return operador */
 	public String getOper() {
 		return oper;
 	}
 
+	/** @param oper operador */
 	public void setOper(String oper) {
 		this.oper = oper;
 	}
 
+	/** @return persona dueña */
 	public PersonaEntity getDuenio() {
 		return duenio;
 	}
 
+	/** @param duenio persona dueña */
 	public void setDuenio(PersonaEntity duenio) {
 		this.duenio = duenio;
 	}
 
+	/**
+	 * Calcula el hash a partir de el número.
+	 *
+	 * @return hash del teléfono
+	 */
 	@Override
 	public int hashCode() {
 		int hash = 0;
@@ -77,9 +108,14 @@ public class TelefonoEntity implements Serializable {
 		return hash;
 	}
 
+	/**
+	 * Compara dos registros por el número.
+	 *
+	 * @param object objeto a comparar
+	 * @return {@code true} si el objeto es del mismo tipo y tiene el mismo número
+	 */
 	@Override
 	public boolean equals(Object object) {
-		// TODO: Warning - this method won't work in the case the id fields are not set
 		if (!(object instanceof TelefonoEntity)) {
 			return false;
 		}
@@ -90,6 +126,7 @@ public class TelefonoEntity implements Serializable {
 		return true;
 	}
 
+	/** @return representación del teléfono sin sus relaciones */
 	@Override
 	public String toString() {
 		return "TelefonoEntity [num=" + num + ", oper=" + oper + "]";

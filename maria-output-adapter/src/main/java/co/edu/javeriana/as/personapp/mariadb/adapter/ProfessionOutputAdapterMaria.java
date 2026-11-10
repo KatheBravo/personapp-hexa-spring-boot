@@ -14,16 +14,29 @@ import co.edu.javeriana.as.personapp.mariadb.repository.ProfesionRepositoryMaria
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Adaptador de salida de profesiones para MariaDB. Nombre del bean:
+ * {@code professionOutputAdapterMaria}.
+ */
 @Slf4j
 @Adapter("professionOutputAdapterMaria")
 @Transactional
 @RequiredArgsConstructor
 public class ProfessionOutputAdapterMaria implements ProfessionOutputPort {
 
+	/** Repositorio JPA de la tabla profesion. */
 	private final ProfesionRepositoryMaria profesionRepositoryMaria;
 
+	/** Conversor entre {@link Profession} y {@link ProfesionEntity}. */
 	private final ProfesionMapperMaria profesionMapperMaria;
 
+	/**
+	 * Guarda la profesión. Si ya existe, copia sus datos sobre la entidad
+	 * administrada para no perder sus estudios.
+	 *
+	 * @param profession profesión a guardar
+	 * @return la profesión guardada
+	 */
 	@Override
 	public Profession save(Profession profession) {
 		log.debug("Into save profession on Adapter MariaDB");
@@ -33,15 +46,26 @@ public class ProfessionOutputAdapterMaria implements ProfessionOutputPort {
 		return profesionMapperMaria.fromAdapterToDomain(profesionRepositoryMaria.save(profesionEntity));
 	}
 
+	/**
+	 * Elimina la profesión. El {@code cascade} de {@link ProfesionEntity} elimina
+	 * también sus estudios.
+	 *
+	 * @param identification identificador de la profesión
+	 * @return {@code true} si la profesión ya no existe
+	 */
 	@Override
 	public Boolean delete(Integer identification) {
 		log.debug("Into delete profession on Adapter MariaDB");
-		// cascade = ALL en ProfesionEntity borra tambien los estudios de esa profesion
 		profesionRepositoryMaria.deleteById(identification);
 		profesionRepositoryMaria.flush();
 		return profesionRepositoryMaria.findById(identification).isEmpty();
 	}
 
+	/**
+	 * Consulta todas las profesiones de MariaDB.
+	 *
+	 * @return lista de profesiones con sus estudios
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public List<Profession> find() {
@@ -50,6 +74,12 @@ public class ProfessionOutputAdapterMaria implements ProfessionOutputPort {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Busca una profesión por identificador en MariaDB.
+	 *
+	 * @param identification identificador de la profesión
+	 * @return la profesión encontrada, o {@code null} si no existe
+	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Profession findById(Integer identification) {

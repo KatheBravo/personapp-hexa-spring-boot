@@ -13,6 +13,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
+ * Entidad JPA de la tabla {@code profesion}. Al eliminar una profesión también
+ * se eliminan sus estudios ({@code cascade = ALL}).
  *
  * @author aasanchez
  */
@@ -24,63 +26,95 @@ import jakarta.persistence.Table;
 public class ProfesionEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	/** Identificador, llave primaria. */
 	@Id
 	@Basic(optional = false)
 	@Column(nullable = false)
 	private Integer id;
+
+	/** Nombre, máximo 90 caracteres. */
 	@Basic(optional = false)
 	@Column(nullable = false, length = 90)
 	private String nom;
-	// TEXT en MariaDB: se declara el tipo de columna en lugar de @Lob (evita leerlo como CLOB)
+
+	/** Descripción. Se declara como TEXT en lugar de {@code @Lob} para que Hibernate no la lea como CLOB. */
 	@Column(columnDefinition = "TEXT")
 	private String des;
+
+	/** Estudios registrados en la profesión. */
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "profesion")
 	private List<EstudiosEntity> estudios;
 
+	/** Constructor vacío requerido por JPA. */
 	public ProfesionEntity() {
 	}
 
+	/**
+	 * Crea una referencia a la profesión con solo su identificador.
+	 *
+	 * @param id identificador de la profesión
+	 */
 	public ProfesionEntity(Integer id) {
 		this.id = id;
 	}
 
+	/**
+	 * Crea la profesión con sus datos obligatorios.
+	 *
+	 * @param id identificador
+	 * @param nom nombre
+	 */
 	public ProfesionEntity(Integer id, String nom) {
 		this.id = id;
 		this.nom = nom;
 	}
 
+	/** @return identificador */
 	public Integer getId() {
 		return id;
 	}
 
+	/** @param id identificador */
 	public void setId(Integer id) {
 		this.id = id;
 	}
 
+	/** @return nombre */
 	public String getNom() {
 		return nom;
 	}
 
+	/** @param nom nombre */
 	public void setNom(String nom) {
 		this.nom = nom;
 	}
 
+	/** @return descripción */
 	public String getDes() {
 		return des;
 	}
 
+	/** @param des descripción */
 	public void setDes(String des) {
 		this.des = des;
 	}
 
+	/** @return estudios de la profesión */
 	public List<EstudiosEntity> getEstudios() {
 		return estudios;
 	}
 
+	/** @param estudiosList estudios de la profesión */
 	public void setEstudios(List<EstudiosEntity> estudiosList) {
 		this.estudios = estudiosList;
 	}
 
+	/**
+	 * Calcula el hash a partir de el identificador.
+	 *
+	 * @return hash de la profesión
+	 */
 	@Override
 	public int hashCode() {
 		int hash = 0;
@@ -88,9 +122,14 @@ public class ProfesionEntity implements Serializable {
 		return hash;
 	}
 
+	/**
+	 * Compara dos registros por el identificador.
+	 *
+	 * @param object objeto a comparar
+	 * @return {@code true} si el objeto es del mismo tipo y tiene el mismo identificador
+	 */
 	@Override
 	public boolean equals(Object object) {
-		// TODO: Warning - this method won't work in the case the id fields are not set
 		if (!(object instanceof ProfesionEntity)) {
 			return false;
 		}
@@ -101,6 +140,7 @@ public class ProfesionEntity implements Serializable {
 		return true;
 	}
 
+	/** @return representación de la profesión sin sus relaciones */
 	@Override
 	public String toString() {
 		return "ProfesionEntity [id=" + id + ", nom=" + nom + ", des=" + des + "]";
