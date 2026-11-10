@@ -5,6 +5,10 @@ import co.edu.javeriana.as.personapp.terminal.adapter.EstudioInputAdapterCli;
 import co.edu.javeriana.as.personapp.terminal.model.EstudioModelCli;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Menú de consola del módulo de estudios. Primero se elige el motor de
+ * persistencia y después la operación.
+ */
 @Slf4j
 public class EstudioMenu {
 
@@ -20,6 +24,12 @@ public class EstudioMenu {
 	private static final int OPCION_ELIMINAR = 5;
 	private static final int OPCION_CONTAR = 6;
 
+	/**
+	 * Muestra el menú de motores hasta que el usuario regresa al menú principal.
+	 *
+	 * @param estudioInputAdapterCli adaptador que ejecuta las operaciones
+	 * @param lector lector de la entrada estándar
+	 */
 	public void iniciarMenu(EstudioInputAdapterCli estudioInputAdapterCli, LectorConsola lector) {
 		boolean isValid = false;
 		do {
@@ -47,6 +57,13 @@ public class EstudioMenu {
 		} while (!isValid);
 	}
 
+	/**
+	 * Muestra las operaciones del módulo para el motor elegido hasta que el usuario
+	 * regresa.
+	 *
+	 * @param estudioInputAdapterCli adaptador conectado al motor elegido
+	 * @param lector lector de la entrada estándar
+	 */
 	private void menuOpciones(EstudioInputAdapterCli estudioInputAdapterCli, LectorConsola lector) {
 		boolean isValid = false;
 		do {
@@ -83,6 +100,12 @@ public class EstudioMenu {
 		} while (!isValid);
 	}
 
+	/**
+	 * Lee de la consola los datos de un estudio.
+	 *
+	 * @param lector lector de la entrada estándar
+	 * @return datos ingresados; la fecha y la universidad pueden quedar vacías
+	 */
 	private EstudioModelCli leerEstudio(LectorConsola lector) {
 		EstudioModelCli estudio = new EstudioModelCli();
 		estudio.setCcPersona(lector.leerEntero("Cedula de la persona: "));
@@ -92,6 +115,11 @@ public class EstudioMenu {
 		return estudio;
 	}
 
+	/**
+	 * Imprime las operaciones disponibles.
+	 *
+	 * @param motor nombre del motor en uso
+	 */
 	private void mostrarMenuOpciones(String motor) {
 		System.out.println("---------------------- Estudios [" + motor + "]");
 		System.out.println(OPCION_VER_TODO + " para ver todos los estudios");
@@ -103,6 +131,9 @@ public class EstudioMenu {
 		System.out.println(OPCION_REGRESAR_MOTOR_PERSISTENCIA + " para regresar");
 	}
 
+	/**
+	 * Imprime los motores de persistencia disponibles.
+	 */
 	private void mostrarMenuMotorPersistencia() {
 		System.out.println("---------------------- Estudios: motor de persistencia");
 		System.out.println(PERSISTENCIA_MARIADB + " para MariaDB");

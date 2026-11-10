@@ -8,19 +8,35 @@ import co.edu.javeriana.as.personapp.terminal.menu.MenuPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Aplicación Spring Boot del adaptador de entrada por consola. Al arrancar
+ * ejecuta el menú principal y, al salir de él, termina el proceso.
+ */
 @Slf4j
 @SpringBootApplication
 @RequiredArgsConstructor
 public class PersonAppCli implements CommandLineRunner {
 
+	/** Menú principal de la consola. */
 	private final MenuPrincipal menuPrincipal;
 
+	/**
+	 * Arranca la aplicación y termina el proceso con el código de salida de Spring.
+	 *
+	 * @param args argumentos de línea de comandos
+	 */
 	public static void main(String[] args) {
 		log.info("Starting PersonAppCli ...");
-		// Al salir del menu se cierra el contexto de Spring (conexiones a MariaDB y MongoDB) y termina el proceso
+		// Al salir del menú se cierra el contexto de Spring (conexiones a MariaDB y MongoDB) y termina el proceso
 		System.exit(SpringApplication.exit(SpringApplication.run(PersonAppCli.class, args)));
 	}
 
+	/**
+	 * Ejecuta el menú principal cuando el contexto de Spring está listo.
+	 *
+	 * @param args argumentos de línea de comandos
+	 * @throws Exception si el menú termina con un error no controlado
+	 */
 	@Override
 	public void run(String... args) throws Exception {
 		log.info("EXECUTING : command line runner");

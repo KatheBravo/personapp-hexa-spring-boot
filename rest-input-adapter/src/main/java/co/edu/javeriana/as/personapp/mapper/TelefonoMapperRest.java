@@ -7,9 +7,19 @@ import co.edu.javeriana.as.personapp.domain.Phone;
 import co.edu.javeriana.as.personapp.model.request.TelefonoRequest;
 import co.edu.javeriana.as.personapp.model.response.TelefonoResponse;
 
+/**
+ * Convierte teléfonos entre el dominio y los modelos de la API REST.
+ */
 @Mapper
 public class TelefonoMapperRest {
 
+	/**
+	 * Convierte un teléfono del dominio en respuesta REST.
+	 *
+	 * @param phone teléfono del dominio
+	 * @param database nombre del motor que atendió la operación
+	 * @return respuesta con los datos del teléfono y el nombre del dueño
+	 */
 	public TelefonoResponse fromDomainToAdapterRest(Phone phone, String database) {
 		Person owner = phone.getOwner();
 		return new TelefonoResponse(
@@ -21,13 +31,27 @@ public class TelefonoMapperRest {
 				"OK");
 	}
 
+	/**
+	 * Une el nombre y el apellido de una persona.
+	 *
+	 * @param person persona
+	 * @return nombre completo, sin espacios sobrantes
+	 */
 	private String fullName(Person person) {
 		String firstName = person.getFirstName() != null ? person.getFirstName() : "";
 		String lastName = person.getLastName() != null ? person.getLastName() : "";
 		return (firstName + " " + lastName).trim();
 	}
 
-	/** El duenio llega solo con su cedula; el caso de uso verifica que exista. */
+	/**
+	 * Convierte la petición REST en teléfono del dominio. El dueño queda solo con su
+	 * cédula; el caso de uso verifica que exista.
+	 *
+	 * @param request datos recibidos en el cuerpo
+	 * @return teléfono del dominio
+	 * @throws InvalidDataException si falta un campo obligatorio o la cédula del dueño no es
+	 *         numérica
+	 */
 	public Phone fromAdapterToDomain(TelefonoRequest request) throws InvalidDataException {
 		Phone phone = new Phone();
 		phone.setNumber(RestValues.requiredText(request.getNumber(), "number"));

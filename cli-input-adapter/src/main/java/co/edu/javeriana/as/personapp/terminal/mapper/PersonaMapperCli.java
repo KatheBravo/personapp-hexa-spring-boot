@@ -5,9 +5,18 @@ import co.edu.javeriana.as.personapp.domain.Gender;
 import co.edu.javeriana.as.personapp.domain.Person;
 import co.edu.javeriana.as.personapp.terminal.model.PersonaModelCli;
 
+/**
+ * Convierte personas entre el dominio y el modelo de consola.
+ */
 @Mapper
 public class PersonaMapperCli {
 
+	/**
+	 * Convierte una persona del dominio en el modelo de consola.
+	 *
+	 * @param person persona del dominio
+	 * @return modelo con el género como M, F o -
+	 */
 	public PersonaModelCli fromDomainToAdapterCli(Person person) {
 		PersonaModelCli personaModelCli = new PersonaModelCli();
 		personaModelCli.setCc(person.getIdentification());
@@ -18,6 +27,12 @@ public class PersonaMapperCli {
 		return personaModelCli;
 	}
 
+	/**
+	 * Convierte los datos leídos de la consola en persona del dominio.
+	 *
+	 * @param personaModelCli datos leídos; el género ya viene validado como M o F
+	 * @return persona del dominio
+	 */
 	public Person fromAdapterCliToDomain(PersonaModelCli personaModelCli) {
 		Person person = new Person();
 		person.setIdentification(personaModelCli.getCc());

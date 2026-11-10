@@ -22,23 +22,45 @@ import co.edu.javeriana.as.personapp.terminal.model.PersonaModelCli;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Adaptador de entrada por consola para personas. Recibe las dos
- * implementaciones del puerto de salida y arma el caso de uso con la que el
- * usuario elige en el menu (cambio de motor en caliente).
+ * Adaptador de entrada por consola para personas.
+ *
+ * Recibe las dos implementaciones del puerto de salida y crea el caso de uso con
+ * la del motor que el usuario elige en el menú, sin reiniciar la aplicación.
  */
 @Slf4j
 @Adapter
 public class PersonaInputAdapterCli {
 
+	/** Adaptador de salida de personas en MariaDB. */
 	private final PersonOutputPort personOutputPortMaria;
+
+	/** Adaptador de salida de personas en MongoDB. */
 	private final PersonOutputPort personOutputPortMongo;
+
+	/** Conversor del modelo de consola de persona. */
 	private final PersonaMapperCli personaMapperCli;
+
+	/** Conversor del modelo de consola de teléfono. */
 	private final TelefonoMapperCli telefonoMapperCli;
+
+	/** Conversor del modelo de consola de estudio. */
 	private final EstudioMapperCli estudioMapperCli;
 
+	/** Caso de uso conectado al motor elegido en el menú. */
 	private PersonInputPort personInputPort;
+
+	/** Motor elegido en el menú. */
 	private DatabaseOption motor;
 
+	/**
+	 * Recibe los adaptadores de salida de ambos motores y los conversores de consola.
+	 *
+	 * @param personOutputPortMaria personas en MariaDB
+	 * @param personOutputPortMongo personas en MongoDB
+	 * @param personaMapperCli conversor de personas
+	 * @param telefonoMapperCli conversor de teléfonos
+	 * @param estudioMapperCli conversor de estudios
+	 */
 	public PersonaInputAdapterCli(@Qualifier("personOutputAdapterMaria") PersonOutputPort personOutputPortMaria,
 			@Qualifier("personOutputAdapterMongo") PersonOutputPort personOutputPortMongo,
 			PersonaMapperCli personaMapperCli, TelefonoMapperCli telefonoMapperCli,
@@ -50,16 +72,31 @@ public class PersonaInputAdapterCli {
 		this.estudioMapperCli = estudioMapperCli;
 	}
 
+	/**
+	 * Conecta el adaptador al motor elegido creando el caso de uso con sus puertos de
+	 * salida. Las operaciones siguientes usan ese motor hasta que se elija otro.
+	 *
+	 * @param dbOption motor elegido: MARIA o MONGO
+	 * @throws InvalidOptionException si el motor no es válido
+	 */
 	public void setPersonOutputPortInjection(String dbOption) throws InvalidOptionException {
 		motor = DatabaseOption.from(dbOption);
 		personInputPort = motor == DatabaseOption.MARIA ? new PersonUseCase(personOutputPortMaria)
 				: new PersonUseCase(personOutputPortMongo);
 	}
 
+	/**
+	 * Devuelve el nombre del motor en uso.
+	 *
+	 * @return nombre del motor, o {@code -} si todavía no se eligió
+	 */
 	public String motorActual() {
 		return motor != null ? motor.getLabel() : "-";
 	}
 
+	/**
+	 * Imprime las personas del motor en uso.
+	 */
 	public void historial() {
 		log.info("Into historial PersonaEntity in Input Adapter");
 		List<PersonaModelCli> personas = personInputPort.findAll().stream()
@@ -70,6 +107,11 @@ public class PersonaInputAdapterCli {
 		personas.forEach(System.out::println);
 	}
 
+	/**
+	 * Busca una persona e imprime el resultado o el motivo por el que no existe.
+	 *
+	 * @param cc cédula de la persona
+	 */
 	public void buscar(Integer cc) {
 		try {
 			System.out.println(personaMapperCli.fromDomainToAdapterCli(personInputPort.findOne(cc)));
@@ -78,6 +120,11 @@ public class PersonaInputAdapterCli {
 		}
 	}
 
+	/**
+	 * Crea una persona e imprime el resultado o el motivo por el que no se pudo crear.
+	 *
+	 * @param persona datos leídos de la consola
+	 */
 	public void crear(PersonaModelCli persona) {
 		try {
 			System.out.println("Creada: " + personaMapperCli
@@ -87,6 +134,11 @@ public class PersonaInputAdapterCli {
 		}
 	}
 
+	/**
+	 * Edita una persona e imprime el resultado.
+	 *
+	 * @param persona datos nuevos, con la cédula de la persona a editar
+	 */
 	public void editar(PersonaModelCli persona) {
 		try {
 			System.out.println("Editada: " + personaMapperCli.fromDomainToAdapterCli(
@@ -96,6 +148,11 @@ public class PersonaInputAdapterCli {
 		}
 	}
 
+	/**
+	 * Elimina una persona con sus teléfonos y estudios e imprime el resultado.
+	 *
+	 * @param cc cédula de la persona
+	 */
 	public void eliminar(Integer cc) {
 		try {
 			boolean eliminada = Boolean.TRUE.equals(personInputPort.drop(cc));
@@ -106,10 +163,18 @@ public class PersonaInputAdapterCli {
 		}
 	}
 
+	/**
+	 * Imprime el número de personas del motor en uso.
+	 */
 	public void contar() {
 		System.out.println("Total de personas en " + motorActual() + ": " + personInputPort.count());
 	}
 
+	/**
+	 * Imprime los teléfonos de una persona.
+	 *
+	 * @param cc cédula de la persona
+	 */
 	public void telefonos(Integer cc) {
 		try {
 			List<Phone> phones = personInputPort.getPhones(cc);
@@ -122,6 +187,11 @@ public class PersonaInputAdapterCli {
 		}
 	}
 
+	/**
+	 * Imprime los estudios de una persona.
+	 *
+	 * @param cc cédula de la persona
+	 */
 	public void estudios(Integer cc) {
 		try {
 			List<Study> studies = personInputPort.getStudies(cc);

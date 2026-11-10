@@ -5,6 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Cuerpo JSON para crear o editar una profesión. Los valores llegan como texto y
+ * se validan al convertirlos al dominio en
+ * {@link co.edu.javeriana.as.personapp.mapper.RestValues}.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

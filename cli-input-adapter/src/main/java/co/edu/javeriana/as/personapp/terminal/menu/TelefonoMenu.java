@@ -5,6 +5,10 @@ import co.edu.javeriana.as.personapp.terminal.adapter.TelefonoInputAdapterCli;
 import co.edu.javeriana.as.personapp.terminal.model.TelefonoModelCli;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Menú de consola del módulo de teléfonos. Primero se elige el motor de
+ * persistencia y después la operación.
+ */
 @Slf4j
 public class TelefonoMenu {
 
@@ -20,6 +24,12 @@ public class TelefonoMenu {
 	private static final int OPCION_ELIMINAR = 5;
 	private static final int OPCION_CONTAR = 6;
 
+	/**
+	 * Muestra el menú de motores hasta que el usuario regresa al menú principal.
+	 *
+	 * @param telefonoInputAdapterCli adaptador que ejecuta las operaciones
+	 * @param lector lector de la entrada estándar
+	 */
 	public void iniciarMenu(TelefonoInputAdapterCli telefonoInputAdapterCli, LectorConsola lector) {
 		boolean isValid = false;
 		do {
@@ -47,6 +57,13 @@ public class TelefonoMenu {
 		} while (!isValid);
 	}
 
+	/**
+	 * Muestra las operaciones del módulo para el motor elegido hasta que el usuario
+	 * regresa.
+	 *
+	 * @param telefonoInputAdapterCli adaptador conectado al motor elegido
+	 * @param lector lector de la entrada estándar
+	 */
 	private void menuOpciones(TelefonoInputAdapterCli telefonoInputAdapterCli, LectorConsola lector) {
 		boolean isValid = false;
 		do {
@@ -81,6 +98,13 @@ public class TelefonoMenu {
 		} while (!isValid);
 	}
 
+	/**
+	 * Lee de la consola los datos de un teléfono.
+	 *
+	 * @param lector lector de la entrada estándar
+	 * @param numero número del teléfono, leído antes
+	 * @return datos ingresados
+	 */
 	private TelefonoModelCli leerTelefono(LectorConsola lector, String numero) {
 		TelefonoModelCli telefono = new TelefonoModelCli();
 		telefono.setNumero(numero);
@@ -89,6 +113,11 @@ public class TelefonoMenu {
 		return telefono;
 	}
 
+	/**
+	 * Imprime las operaciones disponibles.
+	 *
+	 * @param motor nombre del motor en uso
+	 */
 	private void mostrarMenuOpciones(String motor) {
 		System.out.println("---------------------- Telefonos [" + motor + "]");
 		System.out.println(OPCION_VER_TODO + " para ver todos los telefonos");
@@ -100,6 +129,9 @@ public class TelefonoMenu {
 		System.out.println(OPCION_REGRESAR_MOTOR_PERSISTENCIA + " para regresar");
 	}
 
+	/**
+	 * Imprime los motores de persistencia disponibles.
+	 */
 	private void mostrarMenuMotorPersistencia() {
 		System.out.println("---------------------- Telefonos: motor de persistencia");
 		System.out.println(PERSISTENCIA_MARIADB + " para MariaDB");

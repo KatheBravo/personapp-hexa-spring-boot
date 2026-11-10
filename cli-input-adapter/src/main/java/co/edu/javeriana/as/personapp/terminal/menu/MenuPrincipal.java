@@ -11,6 +11,10 @@ import co.edu.javeriana.as.personapp.terminal.adapter.ProfesionInputAdapterCli;
 import co.edu.javeriana.as.personapp.terminal.adapter.TelefonoInputAdapterCli;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Menú principal de la consola. Muestra los módulos de personas, profesiones,
+ * teléfonos y estudios, y delega en el menú de cada uno.
+ */
 @Slf4j
 @Controller
 public class MenuPrincipal {
@@ -21,19 +25,42 @@ public class MenuPrincipal {
 	private static final int MODULO_TELEFONO = 3;
 	private static final int MODULO_ESTUDIO = 4;
 
-	// Beans (adaptadores de entrada CLI)
+	/** Adaptador de entrada de personas. */
 	private final PersonaInputAdapterCli personaInputAdapterCli;
+
+	/** Adaptador de entrada de profesiones. */
 	private final ProfesionInputAdapterCli profesionInputAdapterCli;
+
+	/** Adaptador de entrada de teléfonos. */
 	private final TelefonoInputAdapterCli telefonoInputAdapterCli;
+
+	/** Adaptador de entrada de estudios. */
 	private final EstudioInputAdapterCli estudioInputAdapterCli;
 
-	// Menus
+	/** Menú del módulo de personas. */
 	private final PersonaMenu personaMenu;
+
+	/** Menú del módulo de profesiones. */
 	private final ProfesionMenu profesionMenu;
+
+	/** Menú del módulo de teléfonos. */
 	private final TelefonoMenu telefonoMenu;
+
+	/** Menú del módulo de estudios. */
 	private final EstudioMenu estudioMenu;
+
+	/** Lector de la entrada estándar, compartido por todos los menús. */
 	private final LectorConsola lector;
 
+	/**
+	 * Recibe los adaptadores de entrada y crea los menús y el lector de la entrada
+	 * estándar.
+	 *
+	 * @param personaInputAdapterCli adaptador de personas
+	 * @param profesionInputAdapterCli adaptador de profesiones
+	 * @param telefonoInputAdapterCli adaptador de teléfonos
+	 * @param estudioInputAdapterCli adaptador de estudios
+	 */
 	public MenuPrincipal(PersonaInputAdapterCli personaInputAdapterCli,
 			ProfesionInputAdapterCli profesionInputAdapterCli, TelefonoInputAdapterCli telefonoInputAdapterCli,
 			EstudioInputAdapterCli estudioInputAdapterCli) {
@@ -48,6 +75,11 @@ public class MenuPrincipal {
 		this.lector = new LectorConsola(new Scanner(System.in));
 	}
 
+	/**
+	 * Ejecuta el menú principal hasta que el usuario elige salir o se cierra la
+	 * entrada estándar. Un error en un módulo, como una base de datos apagada, se
+	 * informa y se vuelve al menú.
+	 */
 	public void inicio() {
 		boolean isValid = false;
 		try {
@@ -77,18 +109,21 @@ public class MenuPrincipal {
 				} catch (NoSuchElementException e) {
 					throw e;
 				} catch (RuntimeException e) {
-					// Por ejemplo, si una base de datos esta apagada: se informa y se vuelve al menu principal
+					// Por ejemplo, una base de datos apagada: se informa el error y se vuelve al menú
 					log.error("Error en el modulo elegido", e);
 					System.out.println("Error: " + e.getMessage());
 				}
 			} while (!isValid);
 		} catch (NoSuchElementException e) {
-			// La entrada estandar se cerro (Ctrl+D / Ctrl+Z): se sale sin error
+			// La entrada estándar se cerró (Ctrl+D o Ctrl+Z): se termina sin error
 			log.info("Entrada cerrada, saliendo de PersonApp CLI");
 		}
 		System.out.println("Hasta luego.");
 	}
 
+	/**
+	 * Imprime los módulos disponibles.
+	 */
 	private void mostrarMenu() {
 		System.out.println("======================");
 		System.out.println("      PersonApp CLI   ");

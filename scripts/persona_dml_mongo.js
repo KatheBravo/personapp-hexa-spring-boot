@@ -5,7 +5,6 @@
 // - Las referencias (primaryDuenio, primaryPersona, primaryProfesion) guardan
 //   solo el _id del documento referenciado: asi trabaja @DocumentReference.
 // - _class le dice a Spring Data que clase Java corresponde a cada documento.
-// - Correccion de la plantilla: decia "use prueba_db"; la base es persona_db.
 // =====================================================================
 var personaDb = db.getSiblingDB("persona_db");
 var pkg = "co.edu.javeriana.as.personapp.mongo.document.";

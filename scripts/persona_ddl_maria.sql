@@ -3,7 +3,7 @@
 -- Crea el usuario, el esquema persona_db y las 4 tablas del modelo:
 -- persona, profesion, telefono y estudios.
 -- Ejecutar como root:  mariadb -u root -p -P 3307 -h 127.0.0.1 < persona_ddl_maria.sql
--- OJO: borra el esquema persona_db si ya existe.
+-- Advertencia: elimina el esquema persona_db si ya existe.
 -- =====================================================================
 FLUSH PRIVILEGES;
 --
