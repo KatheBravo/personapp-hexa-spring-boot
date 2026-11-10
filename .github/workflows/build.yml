@@ -100,6 +100,9 @@ jobs:
         run: |
           mkdir -p evidencias
           curl -s http://localhost:3000/api-docs | jq . > evidencias/openapi.json || true
+          echo "===== Especificacion OpenAPI generada por la API (/api-docs) ====="
+          jq -c . evidencias/openapi.json || true
+          echo "===== Fin de la especificacion ====="
           for tam in 1400,1000 1400,3200; do
             google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
               --window-size=$tam --virtual-time-budget=15000 \

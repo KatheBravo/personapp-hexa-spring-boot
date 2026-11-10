@@ -36,6 +36,7 @@ check() {
     [ "$got" = "$value" ] || ok=0
   fi
   N=$((N + 1))
+  # En las tablas de Markdown el caracter | separa columnas: se escapa como \| en el resumen
   local esperado="HTTP $expected" obtenido="HTTP $code"
   if [ -n "$filter" ]; then
     esperado="$esperado, \`$filter\` = $value"
@@ -44,12 +45,12 @@ check() {
   if [ $ok = 1 ]; then
     PASS=$((PASS + 1))
     printf 'OK    %3d [%s] %s %s -> %s\n' "$N" "$motor" "$method" "$path" "$obtenido"
-    ROWS="$ROWS| $N | $motor | $desc | \`$method $path\` | $esperado | $obtenido | ✅ |"$'\n'
+    ROWS="$ROWS| $N | $motor | $desc | \`$method $path\` | ${esperado//|/\\|} | ${obtenido//|/\\|} | ✅ |"$'\n'
   else
     FAIL=$((FAIL + 1))
     printf 'FALLA %3d [%s] %s %s -> esperado: %s | obtenido: %s\n' "$N" "$motor" "$method" "$path" "$esperado" "$obtenido"
     printf '          respuesta: %s\n' "$(head -c 400 "$TMP")"
-    ROWS="$ROWS| $N | $motor | $desc | \`$method $path\` | $esperado | $obtenido | ❌ |"$'\n'
+    ROWS="$ROWS| $N | $motor | $desc | \`$method $path\` | ${esperado//|/\\|} | ${obtenido//|/\\|} | ❌ |"$'\n'
   fi
 }
 
