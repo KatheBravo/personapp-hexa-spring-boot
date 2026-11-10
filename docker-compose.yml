@@ -21,7 +21,9 @@ services:
       retries: 10
 
   mongodb:
-    image: mongo:8.0
+    # MongoDB 7.0: las imagenes 8.x se niegan a arrancar con kernels Linux 6.19 a 7.0.13
+    # (incompatibilidad con TCMalloc, SERVER-121912), que es el kernel de GitHub Actions.
+    image: mongo:7.0
     container_name: personapp-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root

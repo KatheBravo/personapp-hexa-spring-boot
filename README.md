@@ -22,7 +22,7 @@ Implementado por **Katherine Bravo** sobre la plantilla del laboratorio de Andr�
 | Spring Boot | **4.1.2** | Spring Framework 7, Hibernate 7, Spring Data MongoDB 5 (versiones gestionadas por el BOM) |
 | Maven | 3.9 o superior | Proyecto multimódulo con `${revision}` |
 | MariaDB | 11.8 LTS | Puerto **3307** |
-| MongoDB | 8.0 | Puerto **27017** |
+| MongoDB | 7.0 | Puerto **27017**. Las versiones 8.x no arrancan con kernels Linux 6.19 a 7.0.13 (incompatibilidad con TCMalloc) |
 | springdoc-openapi | 3.1.1 | Swagger UI + OpenAPI 3 (línea compatible con Spring Boot 4) |
 | Lombok | 1.18.48 | Hay que habilitarlo en el IDE |
 | Docker / Docker Compose | Opcional | Para levantar las dos bases de datos con un comando |
