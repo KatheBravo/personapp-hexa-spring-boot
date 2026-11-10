@@ -1,24 +1,16 @@
 package co.edu.javeriana.as.personapp.mariadb.mapper;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import co.edu.javeriana.as.personapp.common.annotations.Mapper;
+import co.edu.javeriana.as.personapp.domain.Person;
+import co.edu.javeriana.as.personapp.domain.Profession;
 import co.edu.javeriana.as.personapp.domain.Study;
 import co.edu.javeriana.as.personapp.mariadb.entity.EstudiosEntity;
 import co.edu.javeriana.as.personapp.mariadb.entity.EstudiosEntityPK;
+import co.edu.javeriana.as.personapp.mariadb.entity.PersonaEntity;
+import co.edu.javeriana.as.personapp.mariadb.entity.ProfesionEntity;
 
 @Mapper
 public class EstudiosMapperMaria {
-
-	@Autowired
-	private PersonaMapperMaria personaMapperMaria;
-
-	@Autowired
-	private ProfesionMapperMaria profesionMapperMaria;
 
 	public EstudiosEntity fromDomainToAdapter(Study study) {
 		EstudiosEntityPK estudioPK = new EstudiosEntityPK();
@@ -26,15 +18,12 @@ public class EstudiosMapperMaria {
 		estudioPK.setIdProf(study.getProfession().getIdentification());
 		EstudiosEntity estudio = new EstudiosEntity();
 		estudio.setEstudiosPK(estudioPK);
-		estudio.setFecha(validateFecha(study.getGraduationDate()));
+		// Referencias por llave; el adaptador las reemplaza por las entidades reales
+		estudio.setPersona(new PersonaEntity(study.getPerson().getIdentification()));
+		estudio.setProfesion(new ProfesionEntity(study.getProfession().getIdentification()));
+		estudio.setFecha(study.getGraduationDate());
 		estudio.setUniver(validateUniver(study.getUniversityName()));
 		return estudio;
-	}
-
-	private Date validateFecha(LocalDate graduationDate) {
-		return graduationDate != null
-				? Date.from(graduationDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
-				: null;
 	}
 
 	private String validateUniver(String universityName) {
@@ -43,15 +32,32 @@ public class EstudiosMapperMaria {
 
 	public Study fromAdapterToDomain(EstudiosEntity estudiosEntity) {
 		Study study = new Study();
-		study.setPerson(personaMapperMaria.fromAdapterToDomain(estudiosEntity.getPersona()));
-		study.setProfession(profesionMapperMaria.fromAdapterToDomain(estudiosEntity.getProfesion()));
-		study.setGraduationDate(validateGraduationDate(estudiosEntity.getFecha()));
+		study.setPerson(validatePerson(estudiosEntity));
+		study.setProfession(validateProfession(estudiosEntity));
+		study.setGraduationDate(estudiosEntity.getFecha());
 		study.setUniversityName(validateUniversityName(estudiosEntity.getUniver()));
-		return null;
+		// ERROR DE LA PLANTILLA: aqui se retornaba null y toda persona con estudios fallaba
+		return study;
 	}
 
-	private LocalDate validateGraduationDate(Date fecha) {
-		return fecha != null ? fecha.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+	/** Persona "basica" para no entrar en recursion persona -> estudio -> persona. */
+	private Person validatePerson(EstudiosEntity estudiosEntity) {
+		if (estudiosEntity.getPersona() != null) {
+			return PersonaMapperMaria.toDomainBasic(estudiosEntity.getPersona());
+		}
+		Person person = new Person();
+		person.setIdentification(estudiosEntity.getEstudiosPK().getCcPer());
+		return person;
+	}
+
+	/** Profesion "basica" para no entrar en recursion profesion -> estudio -> profesion. */
+	private Profession validateProfession(EstudiosEntity estudiosEntity) {
+		if (estudiosEntity.getProfesion() != null) {
+			return ProfesionMapperMaria.toDomainBasic(estudiosEntity.getProfesion());
+		}
+		Profession profession = new Profession();
+		profession.setIdentification(estudiosEntity.getEstudiosPK().getIdProf());
+		return profession;
 	}
 
 	private String validateUniversityName(String univer) {

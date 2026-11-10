@@ -4,49 +4,52 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import co.edu.javeriana.as.personapp.common.annotations.Mapper;
 import co.edu.javeriana.as.personapp.domain.Profession;
 import co.edu.javeriana.as.personapp.domain.Study;
 import co.edu.javeriana.as.personapp.mongo.document.EstudiosDocument;
 import co.edu.javeriana.as.personapp.mongo.document.ProfesionDocument;
+import lombok.RequiredArgsConstructor;
 
 @Mapper
+@RequiredArgsConstructor
 public class ProfesionMapperMongo {
-	
-	@Autowired
-	private EstudiosMapperMongo estudiosMapperMongo;
 
+	private final EstudiosMapperMongo estudiosMapperMongo;
+
+	/** Solo los datos propios; los estudios son @ReadOnlyProperty (referencia inversa). */
 	public ProfesionDocument fromDomainToAdapter(Profession profession) {
 		ProfesionDocument profesionDocument = new ProfesionDocument();
 		profesionDocument.setId(profession.getIdentification());
 		profesionDocument.setNom(profession.getName());
 		profesionDocument.setDes(validateDes(profession.getDescription()));
-		profesionDocument.setEstudios(validateEstudios(profession.getStudies()));
 		return profesionDocument;
 	}
 
-	private String validateDes(String description) {
+	private static String validateDes(String description) {
 		return description != null ? description : "";
 	}
 
-	private List<EstudiosDocument> validateEstudios(List<Study> studies) {
-		return studies != null && !studies.isEmpty() ? studies.stream()
-				.map(study -> estudiosMapperMongo.fromDomainToAdapter(study)).collect(Collectors.toList())
-				: new ArrayList<EstudiosDocument>();
-	}
-
+	/** Profesion completa: con los estudios que la referencian. */
 	public Profession fromAdapterToDomain(ProfesionDocument profesionDocument) {
-		Profession profession = new Profession();
-		profession.setIdentification(profesionDocument.getId());
-		profession.setName(profesionDocument.getNom());
-		profession.setDescription(validateDescription(profesionDocument.getDes()));
+		Profession profession = toDomainBasic(profesionDocument);
 		profession.setStudies(validateStudies(profesionDocument.getEstudios()));
 		return profession;
 	}
 
-	private String validateDescription(String des) {
+	/** Profesion sin estudios (corta el ciclo profesion -> estudio -> profesion). */
+	public static Profession toDomainBasic(ProfesionDocument profesionDocument) {
+		Profession profession = new Profession();
+		profession.setIdentification(profesionDocument.getId());
+		if (profesionDocument.getNom() != null) {
+			profession.setName(profesionDocument.getNom());
+		}
+		profession.setDescription(validateDescription(profesionDocument.getDes()));
+		profession.setStudies(new ArrayList<Study>());
+		return profession;
+	}
+
+	private static String validateDescription(String des) {
 		return des != null ? des : "";
 	}
 
