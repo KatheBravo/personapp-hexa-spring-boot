@@ -19,4 +19,14 @@ public class Study {
 	private Profession profession;
 	private LocalDate graduationDate;
 	private String universityName;
+
+	/** La fecha de grado es opcional, pero no puede estar en el futuro. */
+	public Boolean isValidGraduationDate() {
+		return this.graduationDate == null || !this.graduationDate.isAfter(LocalDate.now());
+	}
+
+	/** La universidad es opcional y tiene maximo 50 caracteres (modelo de datos). */
+	public Boolean isValidUniversityName() {
+		return this.universityName == null || this.universityName.length() <= 50;
+	}
 }

@@ -13,4 +13,10 @@ public class PersonaModelCli {
 	private String apellido;
 	private String genero;
 	private Integer edad;
+
+	@Override
+	public String toString() {
+		return String.format("Persona[cc=%d, nombre=%s %s, genero=%s, edad=%s]", cc, nombre, apellido, genero,
+				edad != null ? edad : "-");
+	}
 }
