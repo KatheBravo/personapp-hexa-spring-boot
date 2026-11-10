@@ -7,14 +7,14 @@ Laboratorio 2 de Arquitectura de Software, Pontificia Universidad Javeriana: imp
 | | |
 |---|---|
 | Autora | Katherine Bravo |
-| Versión entregada | [v1.0.0](https://github.com/KatheBravo/personapp-hexa-spring-boot/releases/tag/v1.0.0) |
+| Versión entregada | [v1.0.1](https://github.com/KatheBravo/personapp-hexa-spring-boot/releases/tag/v1.0.1) |
 | Plantilla base | [andres-karoll/personapp-hexa-spring-boot](https://github.com/andres-karoll/personapp-hexa-spring-boot) |
 
 ## Contenido de la entrega
 
 | Entregable | Ubicación |
 |---|---|
-| Código fuente | Este repositorio, tag `v1.0.0` |
+| Código fuente | Este repositorio, tag `v1.0.1` |
 | Scripts DDL y DML de MariaDB y MongoDB | Carpeta [`scripts/`](scripts) |
 | Configuración del ambiente, compilación y despliegue | Este README |
 | Ejecución de las pruebas y evidencias | [GitHub Actions](https://github.com/KatheBravo/personapp-hexa-spring-boot/actions) |
