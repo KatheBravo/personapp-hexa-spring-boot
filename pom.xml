@@ -9,31 +9,52 @@
 	<name>PersonAPP</name>
 	<description>App Hexagonal (Clean Architecture) Multi Module PersonAPP</description>
 	<packaging>pom</packaging>
+
 	<properties>
-		<maven.compiler.source>${global.java.version}</maven.compiler.source>
-		<maven.compiler.target>${global.java.version}</maven.compiler.target>
-		<java.version>${global.java.version}</java.version>
+		<!-- Version del proyecto (CI friendly) -->
+		<revision>1.0.0</revision>
+		<!-- Java LTS -->
+		<java.version>21</java.version>
+		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<revision>0.0.1-SNAPSHOT</revision>
-		<global.java.version>11</global.java.version>
-		<global.springframework.boot.version>2.7.11</global.springframework.boot.version>
-		<global.springframework.version>5.3.27</global.springframework.version>
+		<!-- Versiones del stack -->
+		<spring-boot.version>4.1.2</spring-boot.version>
+		<springdoc.version>3.1.1</springdoc.version>
+		<lombok.version>1.18.48</lombok.version>
+		<!-- Versiones de plugins -->
+		<maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+		<flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
+		<maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
 	</properties>
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
 			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
 		</license>
 	</licenses>
+
 	<developers>
 		<developer>
 			<name>Andres Sanchez</name>
 			<email>asanchez-m@javeriana.edu.co</email>
 			<organization>Pontificia Universidad Javeriana</organization>
 			<organizationUrl>https://www.javeriana.edu.co</organizationUrl>
+			<roles>
+				<role>Autor de la plantilla</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Katherine Bravo</name>
+			<organization>Pontificia Universidad Javeriana</organization>
+			<roles>
+				<role>Implementacion del laboratorio 2</role>
+			</roles>
 		</developer>
 	</developers>
+
+	<!-- El orden de los modulos es el orden de compilacion: primero lo que no depende de nadie -->
 	<modules>
 		<module>common</module>
 		<module>domain</module>
@@ -43,17 +64,98 @@
 		<module>rest-input-adapter</module>
 		<module>cli-input-adapter</module>
 	</modules>
+
+	<!-- Un solo lugar para las versiones de Spring: el BOM de Spring Boot -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
+		<!-- API de logging usada por @Slf4j en todos los modulos (version gestionada por el BOM) -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.26</version>
+			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-to-slf4j</artifactId>
-			<version>2.20.0</version>
-		</dependency>
 	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-plugin.version}</version>
+					<configuration>
+						<release>${java.version}</release>
+						<!-- Necesario para que Spring lea los nombres de los parametros (@PathVariable, @Qualifier) -->
+						<parameters>true</parameters>
+						<!-- Desde JDK 23 el procesamiento de anotaciones ya no es automatico: se declara Lombok -->
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<version>${spring-boot.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+			<!-- Resuelve ${revision} en los POM instalados para que cada modulo pueda usarse por separado -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>${flatten-maven-plugin.version}</version>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten-clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -6,11 +7,11 @@
 		<groupId>co.edu.javeriana.as</groupId>
 		<artifactId>personapp-hexa-spring-boot</artifactId>
 		<version>${revision}</version>
-  	</parent>
+	</parent>
 	<groupId>co.edu.javeriana.as.personapp</groupId>
 	<artifactId>application</artifactId>
-  	<name>PersonAPP Application</name>
-  	<description>Application (Business Rules) for PersonAPP</description>
+	<name>PersonAPP Application</name>
+	<description>Application (Business Rules) for PersonAPP: puertos y casos de uso</description>
 	<dependencies>
 		<dependency>
 			<groupId>co.edu.javeriana.as.personapp</groupId>
@@ -21,6 +22,11 @@
 			<groupId>co.edu.javeriana.as.personapp</groupId>
 			<artifactId>common</artifactId>
 			<version>${revision}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

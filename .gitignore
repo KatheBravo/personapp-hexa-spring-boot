@@ -71,3 +71,13 @@ build/
 
 ### VS Code ###
 .vscode/
+# Maven flatten
+.flattened-pom.xml
+
+# Logs de las aplicaciones
+logs/
+
+# Salidas de las pruebas de integracion
+salida-cli.txt
+evidencias/
+rest-console.log

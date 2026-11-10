@@ -1,25 +1,23 @@
 package co.edu.javeriana.as.personapp.mariadb.entity;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 
 /**
  *
  * @author aasanchez
  */
 @Entity
-@Table(name="estudios", catalog = "persona_db", schema = "")
+@Table(name="estudios", catalog = "persona_db")
 @NamedQueries({ @NamedQuery(name = "EstudiosEntity.findAll", query = "SELECT e FROM EstudiosEntity e"),
 		@NamedQuery(name = "EstudiosEntity.findByIdProf", query = "SELECT e FROM EstudiosEntity e WHERE e.estudiosEntityPK.idProf = :idProf"),
 		@NamedQuery(name = "EstudiosEntity.findByCcPer", query = "SELECT e FROM EstudiosEntity e WHERE e.estudiosEntityPK.ccPer = :ccPer"),
@@ -30,8 +28,9 @@ public class EstudiosEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@EmbeddedId
 	protected EstudiosEntityPK estudiosEntityPK;
-	@Temporal(TemporalType.DATE)
-	private Date fecha;
+	// Desde JPA 3.x / Hibernate 6+ LocalDate se mapea directo a DATE (ya no hace falta @Temporal)
+	@Column(name = "fecha")
+	private LocalDate fecha;
 	@Column(length = 50)
 	private String univer;
 	@JoinColumn(name = "cc_per", referencedColumnName = "cc", nullable = false, insertable = false, updatable = false)
@@ -60,11 +59,11 @@ public class EstudiosEntity implements Serializable {
 		this.estudiosEntityPK = estudiosEntityPK;
 	}
 
-	public Date getFecha() {
+	public LocalDate getFecha() {
 		return fecha;
 	}
 
-	public void setFecha(Date fecha) {
+	public void setFecha(LocalDate fecha) {
 		this.fecha = fecha;
 	}
 
