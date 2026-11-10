@@ -72,7 +72,12 @@ jobs:
       - name: Levantar MariaDB y MongoDB (ejecuta los scripts DDL y DML)
         run: |
           docker compose version
-          docker compose up -d --wait --wait-timeout 180
+          if ! docker compose up -d --wait --wait-timeout 180; then
+            docker compose ps -a
+            echo "===== Registro de MongoDB ====="; docker logs personapp-mongodb 2>&1 | tail -n 150
+            echo "===== Registro de MariaDB ====="; docker logs personapp-mariadb 2>&1 | tail -n 80
+            exit 1
+          fi
           docker compose ps
       - name: Verificar los datos cargados por los scripts
         run: |
