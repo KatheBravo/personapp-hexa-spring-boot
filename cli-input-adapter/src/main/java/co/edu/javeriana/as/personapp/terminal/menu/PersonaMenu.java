@@ -2,7 +2,9 @@ package co.edu.javeriana.as.personapp.terminal.menu;
 
 import co.edu.javeriana.as.personapp.common.exceptions.InvalidOptionException;
 import co.edu.javeriana.as.personapp.terminal.adapter.PersonaInputAdapterCli;
+import co.edu.javeriana.as.personapp.terminal.model.EstudioModelCli;
 import co.edu.javeriana.as.personapp.terminal.model.PersonaModelCli;
+import co.edu.javeriana.as.personapp.terminal.model.TelefonoModelCli;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -25,6 +27,8 @@ public class PersonaMenu {
 	private static final int OPCION_CONTAR = 6;
 	private static final int OPCION_VER_TELEFONOS = 7;
 	private static final int OPCION_VER_ESTUDIOS = 8;
+	private static final int OPCION_AGREGAR_TELEFONO = 9;
+	private static final int OPCION_AGREGAR_ESTUDIO = 10;
 
 	/**
 	 * Muestra el menú de motores hasta que el usuario regresa al menú principal.
@@ -100,10 +104,55 @@ public class PersonaMenu {
 			case OPCION_VER_ESTUDIOS:
 				personaInputAdapterCli.estudios(lector.leerEntero("Cedula: "));
 				break;
+			case OPCION_AGREGAR_TELEFONO:
+				agregarTelefonoAPersona(personaInputAdapterCli, lector);
+				break;
+			case OPCION_AGREGAR_ESTUDIO:
+				agregarEstudioAPersona(personaInputAdapterCli, lector);
+				break;
 			default:
 				System.out.println("La opcion elegida no es valida.");
 			}
 		} while (!isValid);
+	}
+
+	/**
+	 * Lee la cédula de una persona existente y los datos de un teléfono para agregarlo a
+	 * esa persona.
+	 *
+	 * @param personaInputAdapterCli adaptador conectado al motor elegido
+	 * @param lector lector de la entrada estándar
+	 */
+	private void agregarTelefonoAPersona(PersonaInputAdapterCli personaInputAdapterCli, LectorConsola lector) {
+		Integer cc = lector.leerEntero("Cedula de la persona: ");
+		if (!personaInputAdapterCli.verificarPersonaExiste(cc)) {
+			return;
+		}
+		TelefonoModelCli telefono = new TelefonoModelCli();
+		telefono.setCcDuenio(cc);
+		telefono.setNumero(lector.leerTexto("Numero: "));
+		telefono.setOperador(lector.leerTexto("Operador: "));
+		personaInputAdapterCli.agregarTelefono(telefono);
+	}
+
+	/**
+	 * Lee la cédula de una persona existente y los datos de un estudio para agregarlo a
+	 * esa persona.
+	 *
+	 * @param personaInputAdapterCli adaptador conectado al motor elegido
+	 * @param lector lector de la entrada estándar
+	 */
+	private void agregarEstudioAPersona(PersonaInputAdapterCli personaInputAdapterCli, LectorConsola lector) {
+		Integer cc = lector.leerEntero("Cedula de la persona: ");
+		if (!personaInputAdapterCli.verificarPersonaExiste(cc)) {
+			return;
+		}
+		EstudioModelCli estudio = new EstudioModelCli();
+		estudio.setCcPersona(cc);
+		estudio.setIdProfesion(lector.leerEntero("Id de la profesion: "));
+		estudio.setFechaGrado(lector.leerFechaOpcional("Fecha de grado yyyy-MM-dd (Enter para omitir): "));
+		estudio.setUniversidad(lector.leerTextoOpcional("Universidad (Enter para omitir): "));
+		personaInputAdapterCli.agregarEstudio(estudio);
 	}
 
 	/**
@@ -138,6 +187,8 @@ public class PersonaMenu {
 		System.out.println(OPCION_CONTAR + " para contar las personas");
 		System.out.println(OPCION_VER_TELEFONOS + " para ver los telefonos de una persona");
 		System.out.println(OPCION_VER_ESTUDIOS + " para ver los estudios de una persona");
+		System.out.println(OPCION_AGREGAR_TELEFONO + " para agregar un telefono a una persona");
+		System.out.println(OPCION_AGREGAR_ESTUDIO + " para agregar un estudio a una persona");
 		System.out.println(OPCION_REGRESAR_MOTOR_PERSISTENCIA + " para regresar");
 	}
 

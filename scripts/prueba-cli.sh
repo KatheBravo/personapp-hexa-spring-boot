@@ -27,6 +27,12 @@ F
 
 2
 2020202020
+9
+2020202020
+3009991122
+Claro
+7
+2020202020
 5
 2020202020
 0
@@ -76,6 +82,8 @@ esperar() { # descripcion, texto que debe aparecer en la salida
 esperar "Listar personas en MariaDB" "Persona[cc=123456789, nombre=Pepe Perez, genero=M, edad=30]"
 esperar "Crear persona en MariaDB" "Creada: Persona[cc=2020202020, nombre=Ana Lopez, genero=F, edad=-]"
 esperar "Buscar persona creada" "Persona[cc=2020202020, nombre=Ana Lopez, genero=F, edad=-]"
+esperar "Agregar telefono a persona (agregacion)" "Telefono agregado a 2020202020: Telefono[numero=3009991122, operador=Claro, duenio=2020202020 (Ana Lopez)]"
+esperar "Consultar telefono agregado a la persona" "Telefono[numero=3009991122, operador=Claro, duenio=2020202020 (Ana Lopez)]"
 esperar "Eliminar persona" "Persona 2020202020 eliminada"
 esperar "Cambiar a MongoDB sin reiniciar" "Personas [MongoDB]"
 esperar "Telefonos de una persona en MongoDB" "Telefono[numero=3001234567, operador=Claro, duenio=123456789 (Pepe Perez)]"

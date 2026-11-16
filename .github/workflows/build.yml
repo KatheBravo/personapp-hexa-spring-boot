@@ -69,30 +69,32 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jars
-      - name: Levantar MariaDB y MongoDB (ejecuta los scripts DDL y DML)
+      - name: Levantar MariaDB, MongoDB y API REST contenerizada
         run: |
           docker compose version
-          if ! docker compose up -d --wait --wait-timeout 180; then
+          if ! docker compose up -d --build --wait --wait-timeout 240; then
             docker compose ps -a
             echo "===== Registro de MongoDB ====="; docker logs personapp-mongodb 2>&1 | tail -n 150
             echo "===== Registro de MariaDB ====="; docker logs personapp-mariadb 2>&1 | tail -n 80
+            echo "===== Registro de REST API ====="; docker logs personapp-rest 2>&1 | tail -n 100
             exit 1
           fi
           docker compose ps
+      - name: Construir imagen CLI contenerizada
+        run: docker compose --profile cli build personapp-cli
       - name: Verificar los datos cargados por los scripts
         run: |
           echo "MariaDB (usuario de la aplicacion persona_db):"
           docker exec personapp-mariadb mariadb -upersona_db -ppersona_db persona_db -e "SELECT 'persona' AS tabla, COUNT(*) AS filas FROM persona UNION ALL SELECT 'profesion', COUNT(*) FROM profesion UNION ALL SELECT 'telefono', COUNT(*) FROM telefono UNION ALL SELECT 'estudios', COUNT(*) FROM estudios;"
           echo "MongoDB (usuario de la aplicacion persona_db):"
           docker exec personapp-mongodb mongosh --quiet -u persona_db -p persona_db --authenticationDatabase admin persona_db --eval 'printjson({persona: db.persona.countDocuments(), profesion: db.profesion.countDocuments(), telefono: db.telefono.countDocuments(), estudios: db.estudios.countDocuments(), colecciones: db.getCollectionNames().sort()})'
-      - name: Arrancar la API REST
+      - name: Verificar la API REST contenerizada
         run: |
-          nohup java -jar rest-input-adapter/target/rest-input-adapter-1.0.0.jar > rest-console.log 2>&1 &
-          for i in $(seq 1 90); do
+          for i in $(seq 1 30); do
             if curl -sf http://localhost:3000/api-docs > /dev/null; then echo "API arriba en ${i}s"; exit 0; fi
             sleep 1
           done
-          echo "La API no arranco"; cat rest-console.log; exit 1
+          echo "La API no respondio"; docker logs personapp-rest; exit 1
       - name: Prueba de integracion REST (ambos motores, sin reiniciar)
         run: bash scripts/prueba-integracion.sh http://localhost:3000
       - name: Capturas de Swagger UI
@@ -110,9 +112,6 @@ jobs:
               http://localhost:3000/swagger-ui/index.html || true
           done
           ls -la evidencias
-      - name: Detener la API REST
-        if: always()
-        run: pkill -f rest-input-adapter || true
       - name: Prueba de la CLI
         if: success() || failure()
         run: |
@@ -124,10 +123,10 @@ jobs:
       - name: Registros de las aplicaciones y de las bases
         if: always()
         run: |
-          cp rest-console.log evidencias/ 2>/dev/null || true
+          docker logs personapp-rest > evidencias/personapp-rest.log 2>&1 || true
           cp logs/*.log evidencias/ 2>/dev/null || true
           docker compose logs --no-color > evidencias/docker-compose.log 2>&1 || true
-          tail -n 60 rest-console.log || true
+          tail -n 60 evidencias/personapp-rest.log || true
       - name: Guardar evidencias
         if: always()
         uses: actions/upload-artifact@v4

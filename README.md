@@ -6,9 +6,10 @@ Laboratorio 2 de Arquitectura de Software, Pontificia Universidad Javeriana: imp
 
 | | |
 |---|---|
-| Autora | Katherine Bravo |
+| Autores | Katherine Bravo, Daniel Avila |
 | Versión entregada | [v1.0.1](https://github.com/KatheBravo/personapp-hexa-spring-boot/releases/tag/v1.0.1) |
 | Plantilla base | [andres-karoll/personapp-hexa-spring-boot](https://github.com/andres-karoll/personapp-hexa-spring-boot) |
+| Wiki técnica | [personapp-hexa-spring-boot Wiki](https://github.com/KatheBravo/personapp-hexa-spring-boot/wiki) |
 
 ## Contenido de la entrega
 
@@ -86,27 +87,35 @@ Todas las clases y métodos están documentados con Javadoc: qué reciben, qué 
 ## Requisitos
 
 - JDK 21 (`java -version` debe mostrar 21).
-- Maven 3.9 o superior (`mvn -version`).
+- Maven 3.9 o superior (`mvn -version`), o usar el **Maven Wrapper** incluido (`./mvnw` / `mvnw.cmd`).
 - Docker Desktop, o MariaDB y MongoDB instalados localmente.
 - En el IDE, el plugin de Lombok con *annotation processing* habilitado.
 
 ## 1. Configuración del ambiente
 
-### Opción A: Docker (recomendada)
+### Opción A: Docker completo (recomendada — bases de datos + aplicación)
 
 Desde la raíz del repositorio:
 
 ```bash
-docker compose up -d
-docker compose ps        # las dos bases deben quedar en estado "healthy"
+docker compose up -d --build
+docker compose ps        # mariadb, mongodb y personapp-rest deben quedar en estado "healthy"
 ```
 
-Se crean dos contenedores:
+Se crean los contenedores principales (y uno interactivo opcional para la CLI):
 
-| Contenedor | Puerto | Usuario administrador | Scripts que ejecuta al crearse |
+| Contenedor | Puerto | Usuario administrador | Descripción |
 |---|---|---|---|
-| `personapp-mariadb` | 3307 | `root` / `root` | `persona_ddl_maria.sql` y `persona_dml_maria.sql` |
-| `personapp-mongodb` | 27017 | `root` / `root` | `persona_ddl_mongo.js` y `persona_dml_mongo.js` |
+| `personapp-mariadb` | 3307 | `root` / `root` | Ejecuta `persona_ddl_maria.sql` y `persona_dml_maria.sql` al crearse |
+| `personapp-mongodb` | 27017 | `root` / `root` | Ejecuta `persona_ddl_mongo.js` y `persona_dml_mongo.js` al crearse |
+| `personapp-rest` | 3000 | — | API REST + Swagger 3 conectada a `mariadb:3306` y `mongodb:27017` |
+| `personapp-cli` | — | — | Consola interactiva (`docker compose run --rm personapp-cli`) |
+
+Si solo quieres levantar las bases de datos para correr la aplicación desde el IDE o JAR local:
+
+```bash
+docker compose up -d mariadb mongodb
+```
 
 Los scripts crean la base `persona_db`, el usuario de la aplicación `persona_db` / `persona_db` y los datos de prueba: 5 personas, 5 profesiones, 5 teléfonos y 5 estudios, iguales en ambos motores.
 
@@ -158,10 +167,10 @@ SPRING_DATASOURCE_URL=jdbc:mariadb://otro-servidor:3306/persona_db java -jar res
 
 ## 2. Compilación
 
-Desde la raíz:
+Desde la raíz (con Maven instalado o usando el wrapper `./mvnw` / `.\mvnw.cmd`):
 
 ```bash
-mvn clean install
+./mvnw clean install       # En Windows PowerShell: .\mvnw.cmd clean install
 ```
 
 Compila los 7 módulos en orden, ejecuta las pruebas unitarias y genera los JAR ejecutables:
@@ -169,13 +178,23 @@ Compila los 7 módulos en orden, ejecuta las pruebas unitarias y genera los JAR 
 - `rest-input-adapter/target/rest-input-adapter-1.0.0.jar`
 - `cli-input-adapter/target/cli-input-adapter-1.0.0.jar`
 
-Para compilar sin ejecutar las pruebas: `mvn clean install -DskipTests`.
+Para compilar sin ejecutar las pruebas: `./mvnw clean install -DskipTests`.
 
 ## 3. Despliegue y ejecución
 
-Las bases de datos deben estar en ejecución (paso 1).
+### En contenedores (todo en Docker)
 
-### API REST
+Si levantaste el entorno con `docker compose up -d --build`, la API REST ya queda disponible en `http://localhost:3000/swagger-ui.html`. Para abrir la consola interactiva en contenedor:
+
+```bash
+docker compose run --rm personapp-cli
+```
+
+### Ejecución local con JAR
+
+Las bases de datos deben estar en ejecución (paso 1, por ejemplo `docker compose up -d mariadb mongodb`).
+
+#### API REST
 
 ```bash
 java -jar rest-input-adapter/target/rest-input-adapter-1.0.0.jar
@@ -187,13 +206,13 @@ java -jar rest-input-adapter/target/rest-input-adapter-1.0.0.jar
 | Especificación OpenAPI (JSON) | http://localhost:3000/api-docs |
 | Registro | `logs/persona-rest.log` |
 
-### Consola
+#### Consola
 
 ```bash
 java -jar cli-input-adapter/target/cli-input-adapter-1.0.0.jar
 ```
 
-El menú principal ofrece los módulos 1 Personas, 2 Profesiones, 3 Teléfonos y 4 Estudios. En cada módulo se elige el motor (1 MariaDB, 2 MongoDB) y después la operación: ver todo, buscar, crear, editar, eliminar o contar. El registro queda en `logs/persona-cli.log`.
+El menú principal ofrece los módulos 1 Personas, 2 Profesiones, 3 Teléfonos y 4 Estudios. En cada módulo se elige el motor (1 MariaDB, 2 MongoDB) y después la operación: ver todo, buscar, crear, editar, eliminar o contar. Desde el módulo de **Personas** también se pueden consultar y agregar teléfonos o estudios directamente a una persona existente (opciones 7 a 10). El registro queda en `logs/persona-cli.log`.
 
 ### Desde el IDE
 
@@ -343,6 +362,8 @@ En cada *push*, [GitHub Actions](.github/workflows/build.yml) compila con JDK 21
 - Puertos, casos de uso y adaptadores de MariaDB, MongoDB, REST y consola para profesión, teléfono y estudio.
 - Validaciones de negocio en el dominio y en los casos de uso, iguales para ambos motores.
 - Manejo global de errores HTTP y documentación de la API con Swagger.
+- Agregación directa en CLI (consultar y agregar teléfonos o estudios desde el menú de Personas).
+- Contenerización completa de la aplicación (`Dockerfile` multi-etapa para REST y CLI) y Maven Wrapper (`mvnw` / `mvnw.cmd`).
 - Pruebas unitarias, pruebas de integración, `docker-compose.yml` e integración continua.
 
 ## Solución de problemas

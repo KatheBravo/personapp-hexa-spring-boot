@@ -1,0 +1,14 @@
+.git
+.github
+.gitignore
+.mvn
+logs
+evidencias
+salida-cli.txt
+rest-console.log
+**/target
+**/.flattened-pom.xml
+*.log
+README.md
+Dockerfile
+docker-compose.yml

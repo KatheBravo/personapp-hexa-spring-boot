@@ -1,7 +1,8 @@
-# Bases de datos de PersonApp para desarrollo local.
-#   docker compose up -d      -> crea MariaDB (puerto 3307) y MongoDB (puerto 27017)
-#   docker compose down -v    -> las borra (incluidos los datos)
-# La primera vez cada contenedor ejecuta los scripts DDL y DML de la carpeta scripts/.
+# Stack completo de PersonApp en contenedores:
+#   docker compose up -d --build             -> levanta MariaDB, MongoDB y la API REST (puerto 3000)
+#   docker compose run --rm personapp-cli    -> ejecuta el menu interactivo CLI contra las mismas bases
+#   docker compose down -v                   -> detiene y elimina contenedores y volumenes
+# La primera vez MariaDB y MongoDB ejecutan los scripts DDL y DML de la carpeta scripts/.
 services:
   mariadb:
     image: mariadb:11.8
@@ -39,6 +40,59 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+  personapp-rest:
+    build:
+      context: .
+      target: rest
+    container_name: personapp-rest
+    ports:
+      - "3000:3000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/persona_db
+      SPRING_DATASOURCE_USERNAME: persona_db
+      SPRING_DATASOURCE_PASSWORD: persona_db
+      SPRING_MONGODB_HOST: mongodb
+      SPRING_MONGODB_PORT: 27017
+      SPRING_MONGODB_DATABASE: persona_db
+      SPRING_MONGODB_USERNAME: persona_db
+      SPRING_MONGODB_PASSWORD: persona_db
+      SPRING_MONGODB_AUTHENTICATION_DATABASE: admin
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api-docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  personapp-cli:
+    build:
+      context: .
+      target: cli
+    container_name: personapp-cli
+    profiles: ["cli"]
+    stdin_open: true
+    tty: true
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/persona_db
+      SPRING_DATASOURCE_USERNAME: persona_db
+      SPRING_DATASOURCE_PASSWORD: persona_db
+      SPRING_MONGODB_HOST: mongodb
+      SPRING_MONGODB_PORT: 27017
+      SPRING_MONGODB_DATABASE: persona_db
+      SPRING_MONGODB_USERNAME: persona_db
+      SPRING_MONGODB_PASSWORD: persona_db
+      SPRING_MONGODB_AUTHENTICATION_DATABASE: admin
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
 
 volumes:
   mariadb-data:
