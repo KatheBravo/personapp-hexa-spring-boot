@@ -7,7 +7,7 @@ Laboratorio 2 de Arquitectura de Software, Pontificia Universidad Javeriana: imp
 | | |
 |---|---|
 | Autores | Katherine Bravo, Daniel Avila |
-| Versión entregada | [v1.0.1](https://github.com/KatheBravo/personapp-hexa-spring-boot/releases/tag/v1.0.1) |
+| Versión entregada | [v1.1.0](https://github.com/KatheBravo/personapp-hexa-spring-boot/releases/tag/v1.1.0) |
 | Plantilla base | [andres-karoll/personapp-hexa-spring-boot](https://github.com/andres-karoll/personapp-hexa-spring-boot) |
 | Wiki técnica | [personapp-hexa-spring-boot Wiki](https://github.com/KatheBravo/personapp-hexa-spring-boot/wiki) |
 
@@ -15,7 +15,7 @@ Laboratorio 2 de Arquitectura de Software, Pontificia Universidad Javeriana: imp
 
 | Entregable | Ubicación |
 |---|---|
-| Código fuente | Este repositorio, tag `v1.0.1` |
+| Código fuente | Este repositorio, tag `v1.1.0` |
 | Scripts DDL y DML de MariaDB y MongoDB | Carpeta [`scripts/`](scripts) |
 | Configuración del ambiente, compilación y despliegue | Este README |
 | Ejecución de las pruebas y evidencias | [GitHub Actions](https://github.com/KatheBravo/personapp-hexa-spring-boot/actions) |
@@ -50,7 +50,7 @@ En MongoDB el `_id` de cada estudio es el texto `cedula-idProfesion` y las relac
 | MongoDB | 7.0 | Puerto 27017. Las versiones 8.x no arrancan en kernels Linux 6.19 a 7.0.13 (incompatibilidad con TCMalloc) |
 | springdoc-openapi | 3.1.1 | Swagger UI y especificación OpenAPI 3 |
 | Lombok | 1.18.48 | Requiere *annotation processing* en el IDE |
-| Docker Compose | Opcional | Levanta las dos bases de datos con un comando |
+| Docker Compose | Recomendado | Levanta las bases de datos y la aplicación (`personapp-rest` y `personapp-cli`) con un comando |
 
 ## Arquitectura
 
@@ -330,13 +330,13 @@ bash scripts/prueba-cli.sh cli-input-adapter/target/cli-input-adapter-1.0.0.jar
 
 ### Integración continua
 
-En cada *push*, [GitHub Actions](.github/workflows/build.yml) compila con JDK 21, ejecuta las pruebas unitarias, levanta MariaDB y MongoDB con `docker compose` (lo que ejecuta los scripts DDL y DML) y corre las dos pruebas de integración. El resumen de cada ejecución muestra el resultado de cada caso y el artefacto **evidencias** guarda capturas de Swagger UI, la sesión de la consola y los registros.
+En cada *push*, [GitHub Actions](.github/workflows/build.yml) compila con `./mvnw` y JDK 21, ejecuta las pruebas unitarias, levanta los contenedores con `docker compose` (`mariadb`, `mongodb` y `personapp-rest`, más el build de `personapp-cli`) y corre las dos pruebas de integración. El resumen de cada ejecución muestra el resultado de cada caso y el artefacto **evidencias** guarda capturas de Swagger UI, la sesión de la consola y los registros.
 
 | Prueba | Resultado en la versión entregada |
 |---|---|
 | Pruebas unitarias | 19 de 19 correctas |
 | Integración REST, MariaDB y MongoDB | 87 de 87 correctas |
-| Consola (CLI) | 11 de 11 verificaciones correctas |
+| Consola (CLI) | 13 de 13 verificaciones correctas |
 
 ## Trabajo realizado sobre la plantilla
 
