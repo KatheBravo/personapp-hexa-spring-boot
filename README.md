@@ -6,7 +6,7 @@ Laboratorio 2 de Arquitectura de Software, Pontificia Universidad Javeriana: imp
 
 | | |
 |---|---|
-| Autores | Katherine Bravo, Daniel Avila |
+| Autores | Katherine Bravo, Daniel Avila, Juan Sebastian Alvarez |
 | Versión entregada | [v1.1.0](https://github.com/KatheBravo/personapp-hexa-spring-boot/releases/tag/v1.1.0) |
 | Plantilla base | [andres-karoll/personapp-hexa-spring-boot](https://github.com/andres-karoll/personapp-hexa-spring-boot) |
 | Wiki técnica | [personapp-hexa-spring-boot Wiki](https://github.com/KatheBravo/personapp-hexa-spring-boot/wiki) |
