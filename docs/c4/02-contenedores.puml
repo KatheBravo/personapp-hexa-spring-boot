@@ -1,0 +1,29 @@
+@startuml 02-contenedores
+' C4 - Nivel 2: Diagrama de contenedores
+!include <C4/C4_Container>
+
+title PersonApp - Diagrama de contenedores (C4 nivel 2)
+
+Person(usuarioApi, "Usuario / cliente de la API", "Usa Swagger UI o un cliente HTTP.")
+Person(operador, "Operador de consola", "Usa el menú interactivo.")
+
+System_Boundary(personapp, "PersonApp") {
+    Container(swagger, "Swagger UI", "HTML / JavaScript (springdoc-openapi 3.1.1)", "Documentación interactiva del API, servida por la API REST en /swagger-ui.html.")
+    Container(restApi, "API REST", "Java 21, Spring Boot 4.1.2, Spring Web MVC", "Módulo rest-input-adapter. Expone el CRUD en /api/v1/{persona|profesion|telefono|estudio} por el puerto 3000.")
+    Container(cliApp, "Aplicación de consola", "Java 21, Spring Boot 4.1.2 (sin servidor web)", "Módulo cli-input-adapter. Menú de texto con las mismas operaciones CRUD.")
+    ContainerDb(mariadb, "Base de datos relacional", "MariaDB 11.8", "Tablas persona, profesion, telefono y estudios. Puerto 3307 en el host.")
+    ContainerDb(mongodb, "Base de datos documental", "MongoDB 7.0", "Colecciones persona, profesion, telefono y estudios. Puerto 27017.")
+}
+
+Rel(usuarioApi, swagger, "Prueba los endpoints", "HTTP, navegador")
+Rel(usuarioApi, restApi, "Envía peticiones", "HTTP/JSON")
+Rel(swagger, restApi, "Llama a los endpoints y lee /api-docs", "HTTP/JSON")
+Rel(operador, cliApp, "Elige opciones del menú", "stdin/stdout")
+
+Rel(restApi, mariadb, "Lee y escribe (MARIA)", "JDBC / Spring Data JPA, Hibernate 7")
+Rel(restApi, mongodb, "Lee y escribe (MONGO)", "Spring Data MongoDB 5")
+Rel(cliApp, mariadb, "Lee y escribe (MARIA)", "JDBC / Spring Data JPA, Hibernate 7")
+Rel(cliApp, mongodb, "Lee y escribe (MONGO)", "Spring Data MongoDB 5")
+
+SHOW_LEGEND()
+@enduml

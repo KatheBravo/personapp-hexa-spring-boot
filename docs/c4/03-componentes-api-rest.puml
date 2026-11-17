@@ -1,0 +1,68 @@
+@startuml 03-componentes-api-rest
+' C4 - Nivel 3: Diagrama de componentes de la API REST
+' Los límites agrupan los componentes por anillo de la arquitectura hexagonal.
+!include <C4/C4_Component>
+
+LAYOUT_TOP_DOWN()
+
+title PersonApp - Componentes de la API REST (C4 nivel 3)
+
+Container(swagger, "Swagger UI", "springdoc-openapi", "Cliente interactivo del API.")
+ContainerDb(mariadb, "Base de datos relacional", "MariaDB 11.8")
+ContainerDb(mongodb, "Base de datos documental", "MongoDB 7.0")
+
+Container_Boundary(restApi, "API REST (rest-input-adapter + módulos internos)") {
+
+    Boundary(entrada, "Adaptador de entrada REST", "rest-input-adapter") {
+        Component(controllers, "Controladores V1", "Spring @RestController", "PersonaControllerV1, ProfesionControllerV1, TelefonoControllerV1, EstudioControllerV1. Reciben la petición y el motor {database}.")
+        Component(inputAdapters, "Adaptadores de entrada REST", "@Adapter", "PersonaInputAdapterRest, etc. Eligen MARIA o MONGO y crean el caso de uso con el puerto de salida que corresponde.")
+        Component(restMappers, "Mappers REST", "@Mapper", "Convierten Request/Response ⇄ objetos de dominio.")
+        Component(exHandler, "GlobalExceptionHandler", "@RestControllerAdvice", "Traduce las excepciones de negocio a respuestas HTTP.")
+        Component(openApi, "OpenApiConfig", "springdoc-openapi", "Metadatos del API para Swagger.")
+    }
+
+    Boundary(app, "Núcleo: aplicación", "application") {
+        Component(inPorts, "Puertos de entrada", "Interfaces Java", "PersonInputPort, ProfessionInputPort, PhoneInputPort, StudyInputPort.")
+        Component(useCases, "Casos de uso", "@UseCase", "PersonUseCase, ProfessionUseCase, PhoneUseCase, StudyUseCase. Aplican las reglas de negocio.")
+        Component(outPorts, "Puertos de salida", "Interfaces Java", "PersonOutputPort, ProfessionOutputPort, PhoneOutputPort, StudyOutputPort.")
+    }
+
+    Boundary(dom, "Núcleo: dominio", "domain") {
+        Component(domain, "Modelo de dominio", "Java (POJO)", "Person, Profession, Phone, Study, Gender. Sin dependencias de frameworks.")
+    }
+
+    Boundary(salidaMaria, "Adaptador de salida MariaDB", "maria-output-adapter") {
+        Component(mariaAdapters, "Adaptadores MariaDB", "@Adapter", "PersonOutputAdapterMaria, etc. Implementan los puertos de salida.")
+        Component(mariaMappers, "Mappers MariaDB", "@Mapper", "Entity JPA ⇄ dominio.")
+        Component(mariaRepos, "Repositorios JPA", "Spring Data JPA", "PersonaRepositoryMaria, etc., sobre las entidades @Entity.")
+    }
+
+    Boundary(salidaMongo, "Adaptador de salida MongoDB", "mongo-output-adapter") {
+        Component(mongoAdapters, "Adaptadores MongoDB", "@Adapter", "PersonOutputAdapterMongo, etc. Implementan los puertos de salida.")
+        Component(mongoMappers, "Mappers MongoDB", "@Mapper", "Document ⇄ dominio.")
+        Component(mongoRepos, "Repositorios Mongo", "Spring Data MongoDB", "PersonaRepositoryMongo, etc., sobre los @Document. MongoConfig fija fechas en UTC.")
+    }
+}
+
+Rel(swagger, controllers, "Llama a", "HTTP/JSON")
+Rel(swagger, openApi, "Lee /api-docs", "HTTP/JSON")
+Rel(controllers, inputAdapters, "Delega en")
+Rel(controllers, exHandler, "Errores manejados por")
+Rel(inputAdapters, restMappers, "Usa")
+Rel(inputAdapters, inPorts, "Invoca")
+Rel(useCases, inPorts, "Implementa")
+Rel(useCases, outPorts, "Usa")
+Rel(useCases, domain, "Opera sobre")
+
+Rel(mariaAdapters, outPorts, "Implementa")
+Rel(mariaAdapters, mariaMappers, "Usa")
+Rel(mariaAdapters, mariaRepos, "Usa")
+Rel(mariaRepos, mariadb, "Lee y escribe", "JDBC")
+
+Rel(mongoAdapters, outPorts, "Implementa")
+Rel(mongoAdapters, mongoMappers, "Usa")
+Rel(mongoAdapters, mongoRepos, "Usa")
+Rel(mongoRepos, mongodb, "Lee y escribe", "MongoDB Wire Protocol")
+
+SHOW_LEGEND()
+@enduml

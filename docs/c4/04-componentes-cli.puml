@@ -1,0 +1,50 @@
+@startuml 04-componentes-cli
+' C4 - Nivel 3: Diagrama de componentes de la aplicación de consola
+' El núcleo y los adaptadores de salida son los mismos módulos que usa la API REST.
+!include <C4/C4_Component>
+
+LAYOUT_TOP_DOWN()
+
+title PersonApp - Componentes de la aplicación de consola (C4 nivel 3)
+
+Person(operador, "Operador de consola", "Usa el menú interactivo.")
+ContainerDb(mariadb, "Base de datos relacional", "MariaDB 11.8")
+ContainerDb(mongodb, "Base de datos documental", "MongoDB 7.0")
+
+Container_Boundary(cliApp, "Aplicación de consola (cli-input-adapter + módulos internos)") {
+
+    Boundary(entrada, "Adaptador de entrada CLI", "cli-input-adapter") {
+        Component(main, "PersonAppCli", "Spring Boot CommandLineRunner", "Arranca la aplicación sin servidor web y abre el menú principal.")
+        Component(menus, "Menús", "Java", "MenuPrincipal, PersonaMenu, ProfesionMenu, TelefonoMenu, EstudioMenu y LectorConsola. Piden el motor y las opciones.")
+        Component(cliAdapters, "Adaptadores de entrada CLI", "@Adapter", "PersonaInputAdapterCli, etc. Eligen MARIA o MONGO y crean los casos de uso con esos puertos.")
+        Component(cliMappers, "Mappers y modelos CLI", "@Mapper", "PersonaModelCli, etc. ⇄ dominio, y formato de salida en la terminal.")
+    }
+
+    Boundary(nucleo, "Núcleo hexagonal", "application + domain") {
+        Component(inPorts, "Puertos de entrada", "Interfaces Java", "PersonInputPort, ProfessionInputPort, PhoneInputPort, StudyInputPort.")
+        Component(useCases, "Casos de uso", "@UseCase", "Reglas de negocio, compartidas con la API REST.")
+        Component(outPorts, "Puertos de salida", "Interfaces Java", "PersonOutputPort, ProfessionOutputPort, PhoneOutputPort, StudyOutputPort.")
+        Component(domain, "Modelo de dominio", "Java (POJO)", "Person, Profession, Phone, Study, Gender.")
+    }
+
+    Boundary(salida, "Adaptadores de salida", "maria-output-adapter + mongo-output-adapter") {
+        Component(mariaAdapter, "Adaptador MariaDB", "@Adapter + Spring Data JPA", "Implementa los puertos de salida con entidades JPA, repositorios y mappers.")
+        Component(mongoAdapter, "Adaptador MongoDB", "@Adapter + Spring Data MongoDB", "Implementa los puertos de salida con documentos, repositorios y mappers.")
+    }
+}
+
+Rel(operador, menus, "Escoge opciones", "stdin/stdout")
+Rel(main, menus, "Inicia")
+Rel(menus, cliAdapters, "Delega en")
+Rel(cliAdapters, cliMappers, "Usa")
+Rel(cliAdapters, inPorts, "Invoca")
+Rel(useCases, inPorts, "Implementa")
+Rel(useCases, outPorts, "Usa")
+Rel(useCases, domain, "Opera sobre")
+Rel(mariaAdapter, outPorts, "Implementa")
+Rel(mongoAdapter, outPorts, "Implementa")
+Rel(mariaAdapter, mariadb, "Lee y escribe", "JDBC")
+Rel(mongoAdapter, mongodb, "Lee y escribe", "MongoDB Wire Protocol")
+
+SHOW_LEGEND()
+@enduml

@@ -17,6 +17,7 @@ Laboratorio 2 de Arquitectura de Software, Pontificia Universidad Javeriana: imp
 |---|---|
 | Código fuente | Este repositorio, tag `v1.1.0` |
 | Scripts DDL y DML de MariaDB y MongoDB | Carpeta [`scripts/`](scripts) |
+| Diagramas de diseño C4 | Carpeta [`docs/c4/`](docs/c4) y sección [Diagramas C4](#diagramas-c4) |
 | Configuración del ambiente, compilación y despliegue | Este README |
 | Ejecución de las pruebas y evidencias | [GitHub Actions](https://github.com/KatheBravo/personapp-hexa-spring-boot/actions) |
 
@@ -83,6 +84,46 @@ cli-input-adapter  ─┘     │       │        └─ mongo-output-adapter
 - El dominio usa nombres en inglés (`Person`, `Phone`) y los adaptadores en español (`PersonaEntity`, `TelefonoDocument`).
 
 Todas las clases y métodos están documentados con Javadoc: qué reciben, qué hacen, qué devuelven y qué excepciones lanzan.
+
+## Diagramas C4
+
+Los diagramas siguen el [modelo C4](https://c4model.com) y usan sus figuras estándar (persona, sistema, contenedor, base de datos y componente) mediante la librería [C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML). Las fuentes `.puml` y las imágenes `.svg` están en [`docs/c4/`](docs/c4).
+
+### Nivel 1: contexto del sistema
+
+Quién usa PersonApp y con qué sistemas externos se comunica.
+
+![Diagrama de contexto](docs/c4/01-contexto.svg)
+
+### Nivel 2: contenedores
+
+Las dos aplicaciones Spring Boot (API REST y consola), Swagger UI y las dos bases de datos.
+
+![Diagrama de contenedores](docs/c4/02-contenedores.svg)
+
+### Nivel 3: componentes de la API REST
+
+Los componentes de cada módulo, agrupados por anillo de la arquitectura hexagonal: adaptador de entrada, núcleo (aplicación y dominio) y adaptadores de salida.
+
+![Componentes de la API REST](docs/c4/03-componentes-api-rest.svg)
+
+### Nivel 3: componentes de la aplicación de consola
+
+La consola reutiliza el mismo núcleo y los mismos adaptadores de salida; solo cambia el adaptador de entrada.
+
+![Componentes de la consola](docs/c4/04-componentes-cli.svg)
+
+### Despliegue
+
+Cómo se ejecuta todo con Docker Compose (diagrama complementario del modelo C4).
+
+![Diagrama de despliegue](docs/c4/05-despliegue.svg)
+
+Para regenerar las imágenes después de editar un `.puml` (requiere Docker):
+
+```bash
+docker run --rm -v "$PWD/docs/c4:/data" -w /data plantuml/plantuml:1.2025.4 -tsvg -charset UTF-8 "*.puml"
+```
 
 ## Requisitos
 

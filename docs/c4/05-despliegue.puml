@@ -1,0 +1,39 @@
+@startuml 05-despliegue
+' C4 - Diagrama de despliegue (diagrama complementario del modelo C4)
+' Refleja docker-compose.yml y el Dockerfile multi-etapa.
+!include <C4/C4_Deployment>
+
+title PersonApp - Diagrama de despliegue con Docker Compose
+
+Person(usuario, "Usuario", "Navegador, cliente HTTP o terminal.")
+
+Deployment_Node(host, "Equipo de desarrollo / runner de GitHub Actions", "Windows, Linux o macOS") {
+    Deployment_Node(docker, "Docker Engine + Docker Compose", "docker-compose.yml") {
+
+        Deployment_Node(cRest, "personapp-rest", "Contenedor: eclipse-temurin:21-jre-alpine") {
+            Container(restApi, "API REST + Swagger UI", "Spring Boot 4.1.2, JAR de rest-input-adapter", "Puerto 3000 publicado en el host.")
+        }
+
+        Deployment_Node(cCli, "personapp-cli", "Contenedor: eclipse-temurin:21-jre-alpine, perfil cli") {
+            Container(cliApp, "Aplicación de consola", "Spring Boot 4.1.2, JAR de cli-input-adapter", "Se ejecuta con docker compose run --rm personapp-cli.")
+        }
+
+        Deployment_Node(cMaria, "personapp-mariadb", "Contenedor: mariadb:11.8, volumen mariadb-data") {
+            ContainerDb(mariadb, "persona_db", "MariaDB 11.8", "Puerto 3307 en el host → 3306. Inicializada con persona_ddl_maria.sql y persona_dml_maria.sql.")
+        }
+
+        Deployment_Node(cMongo, "personapp-mongodb", "Contenedor: mongo:7.0, volumen mongodb-data") {
+            ContainerDb(mongodb, "persona_db", "MongoDB 7.0", "Puerto 27017. Inicializada con persona_ddl_mongo.js y persona_dml_mongo.js.")
+        }
+    }
+}
+
+Rel(usuario, restApi, "Usa", "HTTP, localhost:3000")
+Rel(usuario, cliApp, "Usa", "TTY interactiva")
+Rel(restApi, mariadb, "Lee y escribe", "JDBC, mariadb:3306")
+Rel(restApi, mongodb, "Lee y escribe", "mongodb:27017")
+Rel(cliApp, mariadb, "Lee y escribe", "JDBC, mariadb:3306")
+Rel(cliApp, mongodb, "Lee y escribe", "mongodb:27017")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,21 @@
+@startuml 01-contexto
+' C4 - Nivel 1: Diagrama de contexto del sistema
+!include <C4/C4_Context>
+
+title PersonApp - Diagrama de contexto (C4 nivel 1)
+
+Person(usuarioApi, "Usuario / cliente de la API", "Administra personas, profesiones, teléfonos y estudios desde el navegador (Swagger UI) o un cliente HTTP.")
+Person(operador, "Operador de consola", "Administra la misma información desde un menú interactivo en la terminal.")
+
+System(personapp, "PersonApp", "Sistema de gestión de personas construido con arquitectura hexagonal. Permite elegir en cada operación el motor de persistencia (MARIA o MONGO).")
+
+System_Ext(mariadb, "MariaDB 11.8", "Base de datos relacional persona_db.")
+System_Ext(mongodb, "MongoDB 7.0", "Base de datos documental persona_db.")
+
+Rel(usuarioApi, personapp, "Consulta y modifica datos", "HTTP/JSON")
+Rel(operador, personapp, "Consulta y modifica datos", "Terminal (stdin/stdout)")
+Rel(personapp, mariadb, "Lee y escribe cuando la operación indica MARIA", "JDBC")
+Rel(personapp, mongodb, "Lee y escribe cuando la operación indica MONGO", "MongoDB Wire Protocol")
+
+SHOW_LEGEND()
+@enduml
